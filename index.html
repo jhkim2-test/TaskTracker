@@ -41,6 +41,93 @@
       min-height: 100vh;
     }
 
+    .lock-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg-tertiary);
+    }
+
+    .lock-card {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 2rem 2rem 1.75rem;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .lock-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+    }
+
+    .lock-title {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .lock-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .lock-input {
+      width: 100%;
+      font-family: inherit;
+      font-size: 14px;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border-mid);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .lock-input:focus { outline: none; border-color: #378ADD; }
+
+    .lock-btn {
+      width: 100%;
+      padding: 9px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--text-primary);
+      color: var(--bg-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .lock-btn:hover { opacity: 0.85; }
+
+    .lock-error {
+      font-size: 12px;
+      color: #A32D2D;
+      display: none;
+      margin-bottom: 8px;
+    }
+
+    .lock-hint {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      text-align: center;
+      margin-top: 4px;
+    }
+
     .topbar {
       background: var(--bg-primary);
       border-bottom: 0.5px solid var(--border-light);
@@ -407,6 +494,20 @@
   </style>
 </head>
 <body>
+
+<div class="lock-screen" id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-icon"><i class="ti ti-lock"></i></div>
+    <div class="lock-title">내 워크스페이스</div>
+    <div class="lock-sub">초대받은 분만 입장할 수 있어요.</div>
+    <input class="lock-input" type="password" id="lock-input" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')tryUnlock()">
+    <div class="lock-error" id="lock-error">비밀번호가 올바르지 않아요.</div>
+    <button class="lock-btn" onclick="tryUnlock()">입장하기</button>
+    <div class="lock-hint">팀 초대 비밀번호를 입력해 주세요</div>
+  </div>
+</div>
+
+<div id="main-app" style="display:none;">
 
 <div class="topbar">
   <div class="topbar-logo">
@@ -802,10 +903,47 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Init
-load();
+// Init — 인증 후 load() + initSample() 호출
 
-if (!tasks.length) {
+function dayOffset(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0,10);
+}
+
+// ── 비밀번호 잠금 ──────────────────────────────
+const PASSWORD = 'tasktracker2026'; // ← 여기서 비밀번호 변경
+
+function tryUnlock() {
+  const val = document.getElementById('lock-input').value;
+  if (val === PASSWORD) {
+    sessionStorage.setItem('ws_auth', '1');
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    load();
+    if (!tasks.length) initSample();
+    renderAll();
+  } else {
+    const err = document.getElementById('lock-error');
+    err.style.display = 'block';
+    document.getElementById('lock-input').value = '';
+    document.getElementById('lock-input').focus();
+    setTimeout(() => { err.style.display = 'none'; }, 3000);
+  }
+}
+
+// 이미 인증된 세션이면 바로 입장
+if (sessionStorage.getItem('ws_auth') === '1') {
+  document.getElementById('lock-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  load();
+  if (!tasks.length) initSample();
+  renderAll();
+} else {
+  setTimeout(() => document.getElementById('lock-input').focus(), 100);
+}
+
+function initSample() {
   tasks = [
     { id:uid(), title:'랜딩 페이지 디자인', project:'웹 리디자인', assignee:'나',     priority:'high', due: dayOffset(2),  status:'inprogress', note:'', createdAt:Date.now() },
     { id:uid(), title:'사용자 인터뷰 정리', project:'마케팅',     assignee:'팀원 A', priority:'mid',  due: dayOffset(5),  status:'todo',       note:'', createdAt:Date.now() },
@@ -815,14 +953,7 @@ if (!tasks.length) {
   ];
   persist();
 }
-
-function dayOffset(n) {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0,10);
-}
-
-renderAll();
 </script>
+</div><!-- /main-app -->
 </body>
 </html>
