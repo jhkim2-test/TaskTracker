@@ -59,7 +59,7 @@
     .topbar-logo { font-size:15px; font-weight:500; color:var(--text-primary); display:flex; align-items:center; gap:8px; }
     .topbar-logo i { font-size:18px; }
 
-    .container { max-width:1200px; margin:0 auto; padding:1.5rem; }
+    .container { max-width:1440px; margin:0 auto; padding:1.2rem 1.2rem; }
 
     /* ── Tabs / Buttons ── */
     .tabs { display:flex; gap:3px; background:var(--bg-secondary); border-radius:var(--radius-md); padding:3px; }
@@ -89,7 +89,7 @@
     .view.active { display:block; }
 
     /* ── Kanban board ── */
-    .kanban { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .kanban { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
     @media (max-width:768px) { .kanban { grid-template-columns:repeat(2,1fr); } }
     @media (max-width:480px) { .kanban { grid-template-columns:1fr; } }
 
@@ -103,20 +103,21 @@
       background: var(--bg-primary);
       border: 0.5px solid var(--border-light);
       border-radius: var(--radius-md);
-      padding: 10px 12px;
+      padding: 12px 14px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
     }
     .task-card:hover { border-color: var(--border-mid); }
 
-    /* D-day urgency colours */
-    .task-card.urgent-d7  { background:#FFFBF0; border-color:#FAC775; }
-    .task-card.urgent-d3  { background:#FFF3F3; border-color:#F09595; }
-    .task-card.urgent-day { background:#FFE8E8; border-color:#E24B4A; }
+    /* D-day urgency colours — 더 진한 빨간색 */
+    .task-card.urgent-d7  { background:#FFF5DC; border-color:#E8A020; border-width:1px; }
+    .task-card.urgent-d3  { background:#FFE4E4; border-color:#D94040; border-width:1.5px; }
+    .task-card.urgent-day { background:#FFD0D0; border-color:#B81C1C; border-width:2px; }
 
     /* Card inner layout */
-    .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-bottom:6px; }
-    .task-card-badges { display:flex; align-items:center; gap:4px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+    .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; }
+    /* 1. 배지 세로 배치 */
+    .task-card-badges { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
     .task-title { font-size:14.3px; font-weight:500; color:var(--text-primary); line-height:1.4; }
     .task-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
 
@@ -131,13 +132,13 @@
 
     /* ── Due label ── */
     .due-label { font-size:11px; color:var(--text-tertiary); }
-    .due-label.overdue { color:#A32D2D; font-weight:500; }
-    .due-label.d-day   { color:#A32D2D; font-weight:700; }
-    .due-label.d3      { color:#854F0B; font-weight:500; }
-    .due-label.d7      { color:#854F0B; }
+    .due-label.overdue { display:inline-block; background:#C0392B; color:#fff; font-weight:700; padding:2px 7px; border-radius:10px; }
+    .due-label.d-day   { display:inline-block; background:#C0392B; color:#fff; font-weight:700; padding:2px 7px; border-radius:10px; }
+    .due-label.d3      { display:inline-block; background:#E74C3C; color:#fff; font-weight:600; padding:2px 7px; border-radius:10px; }
+    .due-label.d7      { display:inline-block; background:#E67E22; color:#fff; font-weight:500; padding:2px 7px; border-radius:10px; }
 
     /* ── Avatar ── */
-    .avatar { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:500; flex-shrink:0; }
+    .avatar { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; flex-shrink:0; }
 
     /* ── List table ── */
     .list-table { width:100%; border-collapse:collapse; background:var(--bg-primary); border-radius:var(--radius-lg); overflow:hidden; border:0.5px solid var(--border-light); }
@@ -182,8 +183,8 @@
       border-radius:var(--radius-lg);
       border:0.5px solid var(--border-light);
       width:100%;
-      max-width:680px;
-      max-height:90vh;
+      max-width:1080px;
+      max-height:95vh;
       overflow:hidden;
       display:flex;
       flex-direction:column;
@@ -214,10 +215,10 @@
       background:var(--bg-secondary);
     }
     .modal-edit-panel.open {
-      width:220px;
+      width:280px;
     }
     .modal-edit-panel-inner {
-      width:220px;
+      width:280px;
       padding:1.25rem 1rem 1rem;
     }
 
@@ -273,7 +274,7 @@
     }
     .field textarea { resize:vertical; }
     .field-note { flex:1; display:flex; flex-direction:column; }
-    .field-note textarea { flex:1; min-height:160px; }
+    .field-note textarea { flex:1; min-height:340px; }
 
     /* Button group (priority / level) */
     .btn-group-row { display:flex; gap:5px; flex-wrap:wrap; }
@@ -318,7 +319,7 @@
     }
     .project-item-header:hover { background:var(--bg-secondary); }
     .project-item-left { display:flex; align-items:center; gap:8px; }
-    .project-chevron { font-size:14px; color:var(--text-tertiary); transition:transform 0.18s; }
+    .project-chevron { font-size:11px; color:var(--text-tertiary); transition:transform 0.18s; display:inline-block; }
     .project-item.expanded .project-chevron { transform:rotate(90deg); }
     .project-item-name { font-size:14px; font-weight:500; color:var(--text-primary); }
     .project-item-count { font-size:12px; color:var(--text-tertiary); }
@@ -363,16 +364,15 @@
 <!-- ── Topbar ── -->
 <div class="topbar">
   <div class="topbar-logo">
-    <i class="ti ti-layout-kanban"></i>
-    내 워크스페이스
+    🗂️ 내 워크스페이스
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="tabs">
-      <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)"><i class="ti ti-layout-columns"></i> 보드</button>
-      <button class="tab" onclick="switchTab(&#39;list&#39;,this)"><i class="ti ti-list"></i> 목록</button>
-      <button class="tab" onclick="switchTab(&#39;projects&#39;,this)"><i class="ti ti-folders"></i> 프로젝트</button>
+      <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)">📋 보드</button>
+      <button class="tab" onclick="switchTab(&#39;list&#39;,this)">📄 목록</button>
+      <button class="tab" onclick="switchTab(&#39;projects&#39;,this)">📁 프로젝트</button>
     </div>
-    <button class="btn btn-primary" onclick="openCreateModal()"><i class="ti ti-plus"></i> 태스크</button>
+    <button class="btn btn-primary" onclick="openCreateModal()">＋ 태스크</button>
   </div>
 </div>
 
@@ -424,7 +424,7 @@
   <!-- ── List view ── -->
   <div id="view-list" class="view">
     <div class="list-header">
-      <button class="btn btn-sm" onclick="downloadExcel()"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+      <button class="btn btn-sm" onclick="downloadExcel()">📥 엑셀 다운로드</button>
     </div>
     <table class="list-table">
       <thead>
@@ -450,7 +450,7 @@
     <div class="section-title">새 프로젝트 추가</div>
     <div class="add-project-row">
       <input type="text" id="new-project-input" placeholder="프로젝트 이름 입력" onkeydown="if(event.key===&#39;Enter&#39;)addProject()">
-      <button class="btn btn-primary" onclick="addProject()"><i class="ti ti-plus"></i> 추가</button>
+      <button class="btn btn-primary" onclick="addProject()">＋ 추가</button>
     </div>
   </div>
 
@@ -532,7 +532,7 @@
         <h2 id="e-title-display" style="font-size:15px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;">태스크 수정</h2>
         <div class="modal-header-actions">
           <button class="status-pill s-todo" id="e-status-pill" onclick="cycleEditStatus()">할 일</button>
-          <button class="gear-btn" id="gear-btn" onclick="toggleSettingsPanel()" title="상세 설정"><i class="ti ti-settings"></i></button>
+          <button class="gear-btn" id="gear-btn" onclick="toggleSettingsPanel()" title="상세 설정">⚙️</button>
         </div>
       </div>
     </div>
@@ -555,7 +555,7 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn" id="e-delete-btn" style="color:#A32D2D;display:none;" onclick="deleteEditTask()"><i class="ti ti-trash"></i> 삭제</button>
+          <button class="btn" id="e-delete-btn" style="color:#A32D2D;display:none;" onclick="deleteEditTask()">🗑 삭제</button>
           <div class="modal-footer-right">
             <button class="btn" onclick="closeEditModal()">취소</button>
             <button class="btn btn-primary" onclick="saveEditTask()">저장</button>
@@ -770,7 +770,7 @@ function renderList() {
       <td>${levelHtml(t.level)||'-'}</td>
       <td>${listDueHtml(t.due)}</td>
       <td>${statusHtml(t.status)}</td>
-      <td><button class="btn btn-sm" onclick="openEditModal('${t.id}')"><i class="ti ti-edit"></i></button></td>
+      <td><button class="btn btn-sm" onclick="openEditModal('${t.id}')">✏️</button></td>
     </tr>`).join('');
 }
 
@@ -795,14 +795,14 @@ function renderProjects() {
       <div class="project-item" id="pi-${i}">
         <div class="project-item-header" onclick="toggleProject(${i})">
           <div class="project-item-left">
-            <i class="ti ti-chevron-right project-chevron"></i>
+            <i class="project-chevron" style="font-style:normal;">▶</i>
             <div>
               <div class="project-item-name">${escHtml(p)}</div>
               <div class="project-item-count">태스크 ${ptasks.length}개</div>
             </div>
           </div>
           <div class="project-item-actions" onclick="event.stopPropagation()">
-            <button class="btn btn-sm" style="color:#A32D2D;" onclick="deleteProject(${i})"><i class="ti ti-trash"></i></button>
+            <button class="btn btn-sm" style="color:#A32D2D;" onclick="deleteProject(${i})">🗑</button>
           </div>
         </div>
         <div class="project-task-list">${taskRows}</div>
