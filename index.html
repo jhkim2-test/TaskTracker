@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
+<!-- saved from url=(0044)file:///C:/Users/JHKIM2/Downloads/index.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>내 워크스페이스</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="./index_files/tabler-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -41,466 +41,317 @@
       min-height: 100vh;
     }
 
-    .lock-screen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: var(--bg-tertiary);
-    }
+    /* ── Lock ── */
+    .lock-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg-tertiary); }
+    .lock-card { background:var(--bg-primary); border:0.5px solid var(--border-light); border-radius:var(--radius-lg); padding:2rem 2rem 1.75rem; width:100%; max-width:360px; }
+    .lock-icon { width:44px; height:44px; border-radius:50%; background:var(--bg-secondary); display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--text-secondary); margin-bottom:1.25rem; }
+    .lock-title { font-size:17px; font-weight:500; color:var(--text-primary); margin-bottom:4px; }
+    .lock-sub { font-size:13px; color:var(--text-secondary); margin-bottom:1.5rem; }
+    .lock-input { width:100%; font-family:inherit; font-size:14px; padding:9px 12px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); margin-bottom:10px; }
+    .lock-input:focus { outline:none; border-color:#378ADD; }
+    .lock-btn { width:100%; padding:9px; border-radius:var(--radius-md); border:none; background:var(--text-primary); color:var(--bg-primary); font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; margin-bottom:10px; }
+    .lock-btn:hover { opacity:0.85; }
+    .lock-error { font-size:12px; color:#A32D2D; display:none; margin-bottom:8px; }
+    .lock-hint { font-size:11px; color:var(--text-tertiary); text-align:center; margin-top:4px; }
 
-    .lock-card {
-      background: var(--bg-primary);
-      border: 0.5px solid var(--border-light);
-      border-radius: var(--radius-lg);
-      padding: 2rem 2rem 1.75rem;
-      width: 100%;
-      max-width: 360px;
-    }
+    /* ── Topbar ── */
+    .topbar { background:var(--bg-primary); border-bottom:0.5px solid var(--border-light); padding:0 1.5rem; height:52px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .topbar-logo { font-size:15px; font-weight:500; color:var(--text-primary); display:flex; align-items:center; gap:8px; }
+    .topbar-logo i { font-size:18px; }
 
-    .lock-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--bg-secondary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      color: var(--text-secondary);
-      margin-bottom: 1.25rem;
-    }
+    .container { max-width:1200px; margin:0 auto; padding:1.5rem; }
 
-    .lock-title {
-      font-size: 17px;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
+    /* ── Tabs / Buttons ── */
+    .tabs { display:flex; gap:3px; background:var(--bg-secondary); border-radius:var(--radius-md); padding:3px; }
+    .tab { padding:5px 14px; border-radius:6px; font-size:13px; cursor:pointer; border:none; background:transparent; color:var(--text-secondary); font-family:inherit; transition:all 0.15s; display:flex; align-items:center; gap:5px; }
+    .tab.active { background:var(--bg-primary); color:var(--text-primary); font-weight:500; border:0.5px solid var(--border-light); }
 
-    .lock-sub {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-bottom: 1.5rem;
-    }
+    .btn { padding:6px 14px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); font-size:13px; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:6px; transition:background 0.1s; }
+    .btn:hover { background:var(--bg-secondary); }
+    .btn-primary { background:var(--text-primary); color:var(--bg-primary); border-color:transparent; }
+    .btn-primary:hover { opacity:0.85; background:var(--text-primary); }
+    .btn-sm { padding:3px 9px; font-size:12px; }
 
-    .lock-input {
-      width: 100%;
-      font-family: inherit;
-      font-size: 14px;
-      padding: 9px 12px;
-      border-radius: var(--radius-md);
-      border: 0.5px solid var(--border-mid);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      margin-bottom: 10px;
-    }
+    /* ── Stats ── */
+    .summary-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:1.25rem; }
+    @media (max-width:640px) { .summary-row { grid-template-columns:repeat(2,1fr); } }
+    .stat-card { background:var(--bg-primary); border:0.5px solid var(--border-light); border-radius:var(--radius-md); padding:12px 14px; }
+    .stat-label { font-size:12px; color:var(--text-secondary); margin-bottom:4px; }
+    .stat-val { font-size:22px; font-weight:500; color:var(--text-primary); }
 
-    .lock-input:focus { outline: none; border-color: #378ADD; }
+    /* ── Filter bar ── */
+    .filter-bar { display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap; align-items:center; }
+    .filter-bar input, .filter-bar select { font-family:inherit; font-size:13px; padding:6px 10px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); }
+    .filter-bar input { flex:1; min-width:160px; }
 
-    .lock-btn {
-      width: 100%;
-      padding: 9px;
-      border-radius: var(--radius-md);
-      border: none;
-      background: var(--text-primary);
-      color: var(--bg-primary);
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
+    /* ── View toggle ── */
+    .view { display:none; }
+    .view.active { display:block; }
 
-    .lock-btn:hover { opacity: 0.85; }
+    /* ── Kanban board ── */
+    .kanban { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    @media (max-width:768px) { .kanban { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:480px) { .kanban { grid-template-columns:1fr; } }
 
-    .lock-error {
-      font-size: 12px;
-      color: #A32D2D;
-      display: none;
-      margin-bottom: 8px;
-    }
+    .col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .col-title { font-size:12px; font-weight:500; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
+    .col-count { font-size:11px; background:var(--bg-secondary); color:var(--text-tertiary); border-radius:10px; padding:1px 7px; }
+    .col-body { display:flex; flex-direction:column; gap:8px; min-height:180px; }
 
-    .lock-hint {
-      font-size: 11px;
-      color: var(--text-tertiary);
-      text-align: center;
-      margin-top: 4px;
-    }
-
-    .topbar {
-      background: var(--bg-primary);
-      border-bottom: 0.5px solid var(--border-light);
-      padding: 0 1.5rem;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .topbar-logo {
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .topbar-logo i { font-size: 18px; }
-
-    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
-
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
-
-    .tabs {
-      display: flex;
-      gap: 3px;
-      background: var(--bg-secondary);
-      border-radius: var(--radius-md);
-      padding: 3px;
-    }
-
-    .tab {
-      padding: 5px 14px;
-      border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
-      font-family: inherit;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .tab.active {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      font-weight: 500;
-      border: 0.5px solid var(--border-light);
-    }
-
-    .btn {
-      padding: 6px 14px;
-      border-radius: var(--radius-md);
-      border: 0.5px solid var(--border-mid);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      font-size: 13px;
-      cursor: pointer;
-      font-family: inherit;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.1s;
-    }
-
-    .btn:hover { background: var(--bg-secondary); }
-
-    .btn-primary {
-      background: var(--text-primary);
-      color: var(--bg-primary);
-      border-color: transparent;
-    }
-
-    .btn-primary:hover { opacity: 0.85; background: var(--text-primary); }
-
-    .btn-sm { padding: 3px 9px; font-size: 12px; }
-
-    .summary-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 1.25rem;
-    }
-
-    @media (max-width: 640px) { .summary-row { grid-template-columns: repeat(2, 1fr); } }
-
-    .stat-card {
-      background: var(--bg-primary);
-      border: 0.5px solid var(--border-light);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-    }
-
-    .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
-    .stat-val { font-size: 22px; font-weight: 500; color: var(--text-primary); }
-
-    .filter-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .filter-bar input,
-    .filter-bar select {
-      font-family: inherit;
-      font-size: 13px;
-      padding: 6px 10px;
-      border-radius: var(--radius-md);
-      border: 0.5px solid var(--border-mid);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-    }
-
-    .filter-bar input { flex: 1; min-width: 160px; }
-
-    .view { display: none; }
-    .view.active { display: block; }
-
-    .kanban {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    @media (max-width: 768px) { .kanban { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px) { .kanban { grid-template-columns: 1fr; } }
-
-    .col-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .col-title {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .col-count {
-      font-size: 11px;
-      background: var(--bg-secondary);
-      color: var(--text-tertiary);
-      border-radius: 10px;
-      padding: 1px 7px;
-    }
-
-    .col-body { display: flex; flex-direction: column; gap: 8px; min-height: 180px; }
-
+    /* ── Task card ── */
     .task-card {
       background: var(--bg-primary);
       border: 0.5px solid var(--border-light);
       border-radius: var(--radius-md);
       padding: 10px 12px;
       cursor: pointer;
-      transition: border-color 0.1s;
+      transition: border-color 0.15s, background 0.15s;
     }
-
     .task-card:hover { border-color: var(--border-mid); }
 
-    .task-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: 7px;
-      line-height: 1.4;
-    }
+    /* D-day urgency colours */
+    .task-card.urgent-d7  { background:#FFFBF0; border-color:#FAC775; }
+    .task-card.urgent-d3  { background:#FFF3F3; border-color:#F09595; }
+    .task-card.urgent-day { background:#FFE8E8; border-color:#E24B4A; }
 
-    .task-meta { display: flex; align-items: center; justify-content: space-between; }
+    /* Card inner layout */
+    .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-bottom:6px; }
+    .task-card-badges { display:flex; align-items:center; gap:4px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+    .task-title { font-size:14.3px; font-weight:500; color:var(--text-primary); line-height:1.4; }
+    .task-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
 
-    .priority {
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 10px;
-      font-weight: 500;
-    }
+    /* ── Priority badges ── */
+    .priority { font-size:11px; padding:2px 7px; border-radius:10px; font-weight:500; white-space:nowrap; }
+    .p-high { background:#FCEBEB; color:#A32D2D; }
+    .p-mid  { background:#FAEEDA; color:#854F0B; }
+    .p-low  { background:#EAF3DE; color:#3B6D11; }
 
-    .p-high { background: #FCEBEB; color: #A32D2D; }
-    .p-mid  { background: #FAEEDA; color: #854F0B; }
-    .p-low  { background: #EAF3DE; color: #3B6D11; }
+    /* ── Level badge ── */
+    .lv-badge { font-size:10px; padding:2px 6px; border-radius:10px; background:#E6F1FB; color:#185FA5; font-weight:500; white-space:nowrap; }
 
-    .due {
-      font-size: 11px;
-      color: var(--text-tertiary);
-      display: flex;
-      align-items: center;
-      gap: 3px;
-    }
+    /* ── Due label ── */
+    .due-label { font-size:11px; color:var(--text-tertiary); }
+    .due-label.overdue { color:#A32D2D; font-weight:500; }
+    .due-label.d-day   { color:#A32D2D; font-weight:700; }
+    .due-label.d3      { color:#854F0B; font-weight:500; }
+    .due-label.d7      { color:#854F0B; }
 
-    .due.overdue { color: #A32D2D; }
-    .due.soon    { color: #854F0B; }
+    /* ── Avatar ── */
+    .avatar { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:500; flex-shrink:0; }
 
-    .task-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 7px;
-    }
+    /* ── List table ── */
+    .list-table { width:100%; border-collapse:collapse; background:var(--bg-primary); border-radius:var(--radius-lg); overflow:hidden; border:0.5px solid var(--border-light); }
+    .list-table th { font-size:12px; font-weight:500; color:var(--text-secondary); text-align:left; padding:10px 12px; border-bottom:0.5px solid var(--border-light); white-space:nowrap; }
+    .list-table td { font-size:13px; padding:10px 12px; border-bottom:0.5px solid var(--border-light); color:var(--text-primary); vertical-align:middle; }
+    .list-table tr:last-child td { border-bottom:none; }
+    .list-table tbody tr:hover td { background:var(--bg-secondary); }
 
-    .project-tag { font-size: 11px; color: var(--text-tertiary); }
+    /* ── Status badge ── */
+    .status-badge { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500; white-space:nowrap; }
+    .s-todo       { background:var(--bg-secondary); color:var(--text-secondary); }
+    .s-inprogress { background:#E6F1FB; color:#185FA5; }
+    .s-wait       { background:#FAEEDA; color:#854F0B; }
+    .s-done       { background:#EAF3DE; color:#3B6D11; }
 
-    .avatar {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 500;
-      flex-shrink: 0;
-    }
+    .empty-col { font-size:12px; color:var(--text-tertiary); text-align:center; padding:1.5rem 0; }
 
-    .list-table { width: 100%; border-collapse: collapse; background: var(--bg-primary); border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border-light); }
+    /* ── List view Excel download btn ── */
+    .list-header { display:flex; align-items:center; justify-content:flex-end; margin-bottom:8px; }
 
-    .list-table th {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-align: left;
-      padding: 10px 12px;
-      border-bottom: 0.5px solid var(--border-light);
-      white-space: nowrap;
-    }
+    /* ══════════════════════════════════════
+       MODALS
+    ══════════════════════════════════════ */
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+    .modal-bg.open { display:flex; }
 
-    .list-table td {
-      font-size: 13px;
-      padding: 10px 12px;
-      border-bottom: 0.5px solid var(--border-light);
-      color: var(--text-primary);
-      vertical-align: middle;
-    }
-
-    .list-table tr:last-child td { border-bottom: none; }
-    .list-table tbody tr:hover td { background: var(--bg-secondary); }
-
-    .status-badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .s-todo       { background: var(--bg-secondary); color: var(--text-secondary); }
-    .s-inprogress { background: #E6F1FB; color: #185FA5; }
-    .s-review     { background: #FAEEDA; color: #854F0B; }
-    .s-done       { background: #EAF3DE; color: #3B6D11; }
-
-    .empty-col {
-      font-size: 12px;
-      color: var(--text-tertiary);
-      text-align: center;
-      padding: 1.5rem 0;
-    }
-
-    /* Modal */
-    .modal-bg {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-
-    .modal-bg.open { display: flex; }
-
+    /* ── Create modal (standard width) ── */
     .modal {
-      background: var(--bg-primary);
-      border-radius: var(--radius-lg);
-      border: 0.5px solid var(--border-light);
-      padding: 1.5rem;
-      width: 100%;
-      max-width: 460px;
-      max-height: 90vh;
-      overflow-y: auto;
+      background:var(--bg-primary);
+      border-radius:var(--radius-lg);
+      border:0.5px solid var(--border-light);
+      padding:1.25rem 1.5rem 1.5rem;
+      width:100%;
+      max-width:460px;
+      max-height:90vh;
+      overflow-y:auto;
     }
 
-    .modal h2 {
-      font-size: 16px;
-      font-weight: 500;
-      margin-bottom: 1.25rem;
-      color: var(--text-primary);
+    /* ── Edit modal (wider, 2-panel) ── */
+    .modal-edit {
+      background:var(--bg-primary);
+      border-radius:var(--radius-lg);
+      border:0.5px solid var(--border-light);
+      width:100%;
+      max-width:680px;
+      max-height:90vh;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
     }
 
-    .field { margin-bottom: 12px; }
-
-    .field label {
-      display: block;
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
+    .modal-edit-body {
+      display:flex;
+      flex:1;
+      overflow:hidden;
     }
 
-    .field input,
-    .field select,
-    .field textarea {
-      width: 100%;
-      font-family: inherit;
-      font-size: 13px;
-      padding: 7px 10px;
-      border-radius: var(--radius-md);
-      border: 0.5px solid var(--border-mid);
-      background: var(--bg-primary);
-      color: var(--text-primary);
+    /* Main pane */
+    .modal-edit-main {
+      flex:1;
+      padding:1.25rem 1.5rem 1.5rem;
+      display:flex;
+      flex-direction:column;
+      overflow-y:auto;
     }
 
-    .field textarea { min-height: 70px; resize: vertical; }
-
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    .modal-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 1.25rem;
+    /* Settings slide panel */
+    .modal-edit-panel {
+      width:0;
+      overflow:hidden;
+      border-left:0.5px solid var(--border-light);
+      transition:width 0.22s ease;
+      flex-shrink:0;
+      background:var(--bg-secondary);
+    }
+    .modal-edit-panel.open {
+      width:220px;
+    }
+    .modal-edit-panel-inner {
+      width:220px;
+      padding:1.25rem 1rem 1rem;
     }
 
-    .modal-footer-right { display: flex; gap: 8px; }
-
-    /* Project Manager */
-    .section-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    /* Modal header row */
+    .modal-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:1rem;
     }
+    .modal-header h2 { font-size:16px; font-weight:500; color:var(--text-primary); }
+    .modal-header-actions { display:flex; align-items:center; gap:6px; }
 
-    .project-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+    /* Status button (pill, click to cycle) */
+    .status-pill {
+      font-size:12px;
+      padding:3px 12px;
+      border-radius:20px;
+      border:0.5px solid transparent;
+      cursor:pointer;
+      font-family:inherit;
+      font-weight:500;
+      white-space:nowrap;
+      transition:all 0.1s;
+    }
+    .status-pill.s-todo       { background:var(--bg-secondary); color:var(--text-secondary); border-color:var(--border-mid); }
+    .status-pill.s-inprogress { background:#E6F1FB; color:#185FA5; border-color:#B5D4F4; }
+    .status-pill.s-wait       { background:#FAEEDA; color:#854F0B; border-color:#FAC775; }
+    .status-pill.s-done       { background:#EAF3DE; color:#3B6D11; border-color:#C0DD97; }
+
+    .gear-btn {
+      width:30px; height:30px;
+      border-radius:var(--radius-md);
+      border:0.5px solid var(--border-mid);
+      background:var(--bg-primary);
+      color:var(--text-secondary);
+      display:flex; align-items:center; justify-content:center;
+      font-size:15px;
+      cursor:pointer;
+      transition:background 0.1s;
+      flex-shrink:0;
+    }
+    .gear-btn:hover { background:var(--bg-secondary); }
+    .gear-btn.active { background:var(--bg-tertiary); color:var(--text-primary); }
+
+    /* Fields */
+    .field { margin-bottom:12px; }
+    .field label { display:block; font-size:12px; color:var(--text-secondary); margin-bottom:4px; }
+    .field input, .field select, .field textarea {
+      width:100%; font-family:inherit; font-size:13px; padding:7px 10px;
+      border-radius:var(--radius-md); border:0.5px solid var(--border-mid);
+      background:var(--bg-primary); color:var(--text-primary);
+    }
+    .field textarea { resize:vertical; }
+    .field-note { flex:1; display:flex; flex-direction:column; }
+    .field-note textarea { flex:1; min-height:160px; }
+
+    /* Button group (priority / level) */
+    .btn-group-row { display:flex; gap:5px; flex-wrap:wrap; }
+    .choice-btn {
+      font-size:12px; padding:4px 11px; border-radius:20px;
+      border:0.5px solid var(--border-mid);
+      background:transparent; color:var(--text-secondary);
+      cursor:pointer; font-family:inherit; font-weight:500;
+      transition:all 0.1s;
+    }
+    .choice-btn:hover { background:var(--bg-secondary); }
+    .choice-btn.sel-high { background:#FCEBEB; color:#A32D2D; border-color:#F7C1C1; }
+    .choice-btn.sel-mid  { background:#FAEEDA; color:#854F0B; border-color:#FAC775; }
+    .choice-btn.sel-low  { background:#EAF3DE; color:#3B6D11; border-color:#C0DD97; }
+    .choice-btn.sel-lv   { background:#E6F1FB; color:#185FA5; border-color:#B5D4F4; }
+
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+    .modal-footer { display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem; }
+    .modal-footer-right { display:flex; gap:8px; }
+
+    /* Panel section label */
+    .panel-label { font-size:11px; font-weight:500; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:7px; }
+
+    /* ══════════════════════════════════════
+       PROJECT VIEW
+    ══════════════════════════════════════ */
+    .section-title { font-size:13px; font-weight:500; color:var(--text-secondary); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.05em; }
+    .project-list { display:flex; flex-direction:column; gap:8px; margin-bottom:1.5rem; }
 
     .project-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg-primary);
-      border: 0.5px solid var(--border-light);
-      border-radius: var(--radius-md);
-      padding: 10px 14px;
+      background:var(--bg-primary);
+      border:0.5px solid var(--border-light);
+      border-radius:var(--radius-md);
+      overflow:hidden;
     }
+    .project-item-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .project-item-header:hover { background:var(--bg-secondary); }
+    .project-item-left { display:flex; align-items:center; gap:8px; }
+    .project-chevron { font-size:14px; color:var(--text-tertiary); transition:transform 0.18s; }
+    .project-item.expanded .project-chevron { transform:rotate(90deg); }
+    .project-item-name { font-size:14px; font-weight:500; color:var(--text-primary); }
+    .project-item-count { font-size:12px; color:var(--text-tertiary); }
+    .project-item-actions { display:flex; align-items:center; gap:6px; }
 
-    .project-item-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
-    .project-item-count { font-size: 12px; color: var(--text-tertiary); }
+    /* Expandable task list inside project */
+    .project-task-list { display:none; border-top:0.5px solid var(--border-light); }
+    .project-item.expanded .project-task-list { display:block; }
+    .project-task-row {
+      display:flex; align-items:center; gap:10px;
+      padding:8px 14px;
+      border-bottom:0.5px solid var(--border-light);
+      font-size:13px;
+      cursor:pointer;
+    }
+    .project-task-row:last-child { border-bottom:none; }
+    .project-task-row:hover { background:var(--bg-secondary); }
+    .project-task-title { flex:1; font-weight:500; color:var(--text-primary); }
+    .project-task-meta { display:flex; align-items:center; gap:6px; }
 
-    .add-project-row { display: flex; gap: 8px; }
-    .add-project-row input { flex: 1; font-family: inherit; font-size: 13px; padding: 7px 10px; border-radius: var(--radius-md); border: 0.5px solid var(--border-mid); background: var(--bg-primary); color: var(--text-primary); }
+    .add-project-row { display:flex; gap:8px; }
+    .add-project-row input { flex:1; font-family:inherit; font-size:13px; padding:7px 10px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); }
   </style>
 </head>
 <body>
 
+<!-- ── Lock screen ── -->
 <div class="lock-screen" id="lock-screen">
   <div class="lock-card">
     <div class="lock-icon"><i class="ti ti-lock"></i></div>
     <div class="lock-title">내 워크스페이스</div>
     <div class="lock-sub">초대받은 분만 입장할 수 있어요.</div>
-    <input class="lock-input" type="password" id="lock-input" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')tryUnlock()">
+    <input class="lock-input" type="password" id="lock-input" placeholder="비밀번호 입력" onkeydown="if(event.key===&#39;Enter&#39;)tryUnlock()">
     <div class="lock-error" id="lock-error">비밀번호가 올바르지 않아요.</div>
     <button class="lock-btn" onclick="tryUnlock()">입장하기</button>
     <div class="lock-hint">팀 초대 비밀번호를 입력해 주세요</div>
@@ -509,6 +360,7 @@
 
 <div id="main-app" style="display:none;">
 
+<!-- ── Topbar ── -->
 <div class="topbar">
   <div class="topbar-logo">
     <i class="ti ti-layout-kanban"></i>
@@ -516,16 +368,17 @@
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('kanban',this)"><i class="ti ti-layout-columns"></i> 보드</button>
-      <button class="tab" onclick="switchTab('list',this)"><i class="ti ti-list"></i> 목록</button>
-      <button class="tab" onclick="switchTab('projects',this)"><i class="ti ti-folders"></i> 프로젝트</button>
+      <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)"><i class="ti ti-layout-columns"></i> 보드</button>
+      <button class="tab" onclick="switchTab(&#39;list&#39;,this)"><i class="ti ti-list"></i> 목록</button>
+      <button class="tab" onclick="switchTab(&#39;projects&#39;,this)"><i class="ti ti-folders"></i> 프로젝트</button>
     </div>
-    <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus"></i> 태스크</button>
+    <button class="btn btn-primary" onclick="openCreateModal()"><i class="ti ti-plus"></i> 태스크</button>
   </div>
 </div>
 
 <div class="container">
 
+  <!-- Stats -->
   <div class="summary-row">
     <div class="stat-card"><div class="stat-label">전체 태스크</div><div class="stat-val" id="st-total">0</div></div>
     <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-val" id="st-inprogress" style="color:#185FA5;">0</div></div>
@@ -533,6 +386,7 @@
     <div class="stat-card"><div class="stat-label">완료</div><div class="stat-val" id="st-done" style="color:#3B6D11;">0</div></div>
   </div>
 
+  <!-- Filter bar -->
   <div class="filter-bar">
     <input type="text" id="search-input" placeholder="태스크 검색..." oninput="renderAll()">
     <select id="filter-project" onchange="renderAll()"><option value="">모든 프로젝트</option></select>
@@ -545,6 +399,7 @@
     </select>
   </div>
 
+  <!-- ── Board view ── -->
   <div id="view-kanban" class="view active">
     <div class="kanban">
       <div>
@@ -556,8 +411,8 @@
         <div class="col-body" id="col-inprogress"></div>
       </div>
       <div>
-        <div class="col-header"><span class="col-title">검토</span><span class="col-count" id="cnt-review">0</span></div>
-        <div class="col-body" id="col-review"></div>
+        <div class="col-header"><span class="col-title">대기</span><span class="col-count" id="cnt-wait">0</span></div>
+        <div class="col-body" id="col-wait"></div>
       </div>
       <div>
         <div class="col-header"><span class="col-title">완료</span><span class="col-count" id="cnt-done">0</span></div>
@@ -566,7 +421,11 @@
     </div>
   </div>
 
+  <!-- ── List view ── -->
   <div id="view-list" class="view">
+    <div class="list-header">
+      <button class="btn btn-sm" onclick="downloadExcel()"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+    </div>
     <table class="list-table">
       <thead>
         <tr>
@@ -574,6 +433,7 @@
           <th>프로젝트</th>
           <th>담당자</th>
           <th>우선순위</th>
+          <th>난이도</th>
           <th>마감일</th>
           <th>상태</th>
           <th></th>
@@ -583,141 +443,280 @@
     </table>
   </div>
 
+  <!-- ── Projects view ── -->
   <div id="view-projects" class="view">
     <div class="section-title">프로젝트 목록</div>
     <div class="project-list" id="project-list"></div>
     <div class="section-title">새 프로젝트 추가</div>
     <div class="add-project-row">
-      <input type="text" id="new-project-input" placeholder="프로젝트 이름 입력" onkeydown="if(event.key==='Enter')addProject()">
+      <input type="text" id="new-project-input" placeholder="프로젝트 이름 입력" onkeydown="if(event.key===&#39;Enter&#39;)addProject()">
       <button class="btn btn-primary" onclick="addProject()"><i class="ti ti-plus"></i> 추가</button>
     </div>
   </div>
 
-</div>
+</div><!-- /container -->
 
-<!-- Task Modal -->
-<div class="modal-bg" id="modal-bg" onclick="closeModalBg(event)">
+
+<!-- ══════════════════════════════════════
+     CREATE MODAL  (+태스크 버튼)
+══════════════════════════════════════ -->
+<div class="modal-bg" id="create-modal-bg" onclick="closeCreateModalBg(event)">
   <div class="modal">
-    <h2 id="modal-title">새 태스크</h2>
+    <div class="modal-header">
+      <h2>새 태스크</h2>
+      <div class="modal-header-actions">
+        <button class="status-pill s-todo" id="c-status-pill" onclick="cycleCreateStatus()">할 일</button>
+      </div>
+    </div>
+
     <div class="field">
       <label>태스크 이름 *</label>
-      <input type="text" id="f-title" placeholder="태스크 이름 입력">
+      <input type="text" id="c-title" placeholder="태스크 이름 입력">
     </div>
     <div class="field">
       <label>프로젝트</label>
-      <select id="f-project"><option value="">선택 안함</option></select>
+      <select id="c-project"><option value="">선택 안함</option></select>
     </div>
     <div class="field">
       <label>담당자</label>
-      <select id="f-assignee">
+      <select id="c-assignee">
         <option value="">없음</option>
         <option value="나">나</option>
         <option value="팀원 A">팀원 A</option>
         <option value="팀원 B">팀원 B</option>
       </select>
     </div>
-    <div class="two-col">
-      <div class="field">
-        <label>우선순위</label>
-        <select id="f-priority">
-          <option value="mid">보통</option>
-          <option value="high">높음</option>
-          <option value="low">낮음</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>마감일</label>
-        <input type="date" id="f-due">
+    <div class="field">
+      <label>마감일</label>
+      <input type="date" id="c-due">
+    </div>
+    <div class="field">
+      <label>우선순위</label>
+      <div class="btn-group-row" id="c-priority-group">
+        <button class="choice-btn" data-val="high" onclick="selectPriority(&#39;c&#39;,this)">높음</button>
+        <button class="choice-btn sel-mid" data-val="mid" onclick="selectPriority(&#39;c&#39;,this)">보통</button>
+        <button class="choice-btn" data-val="low" onclick="selectPriority(&#39;c&#39;,this)">낮음</button>
       </div>
     </div>
     <div class="field">
-      <label>상태</label>
-      <select id="f-status">
-        <option value="todo">할 일</option>
-        <option value="inprogress">진행 중</option>
-        <option value="review">검토</option>
-        <option value="done">완료</option>
-      </select>
+      <label>업무난이도</label>
+      <div class="btn-group-row" id="c-level-group">
+        <button class="choice-btn sel-lv" data-val="1" onclick="selectLevel(&#39;c&#39;,this)">Lv.1</button>
+        <button class="choice-btn" data-val="2" onclick="selectLevel(&#39;c&#39;,this)">Lv.2</button>
+        <button class="choice-btn" data-val="3" onclick="selectLevel(&#39;c&#39;,this)">Lv.3</button>
+        <button class="choice-btn" data-val="4" onclick="selectLevel(&#39;c&#39;,this)">Lv.4</button>
+        <button class="choice-btn" data-val="5" onclick="selectLevel(&#39;c&#39;,this)">Lv.5</button>
+      </div>
     </div>
-    <div class="field">
-      <label>메모</label>
-      <textarea id="f-note" placeholder="추가 내용..."></textarea>
-    </div>
+
     <div class="modal-footer">
-      <button class="btn" id="delete-btn" style="color:#A32D2D;display:none;" onclick="deleteCurrentTask()"><i class="ti ti-trash"></i> 삭제</button>
+      <div></div>
       <div class="modal-footer-right">
-        <button class="btn" onclick="closeModal()">취소</button>
-        <button class="btn btn-primary" onclick="saveTask()">저장</button>
+        <button class="btn" onclick="closeCreateModal()">취소</button>
+        <button class="btn btn-primary" onclick="saveCreateTask()">저장</button>
       </div>
     </div>
   </div>
 </div>
 
+
+<!-- ══════════════════════════════════════
+     EDIT MODAL  (카드 클릭)
+══════════════════════════════════════ -->
+<div class="modal-bg" id="edit-modal-bg" onclick="closeEditModalBg(event)">
+  <div class="modal-edit">
+
+    <!-- Header -->
+    <div style="padding:1.25rem 1.5rem 0; border-bottom:0.5px solid var(--border-light); padding-bottom:1rem;">
+      <div class="modal-header" style="margin-bottom:0;">
+        <h2 id="e-title-display" style="font-size:15px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;">태스크 수정</h2>
+        <div class="modal-header-actions">
+          <button class="status-pill s-todo" id="e-status-pill" onclick="cycleEditStatus()">할 일</button>
+          <button class="gear-btn" id="gear-btn" onclick="toggleSettingsPanel()" title="상세 설정"><i class="ti ti-settings"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-edit-body">
+
+      <!-- Main pane -->
+      <div class="modal-edit-main">
+        <div class="field">
+          <label>태스크 이름</label>
+          <input type="text" id="e-title" placeholder="태스크 이름 입력">
+        </div>
+        <div class="field">
+          <label>마감일</label>
+          <input type="date" id="e-due">
+        </div>
+        <div class="field field-note" style="flex:1;display:flex;flex-direction:column;">
+          <label>업무내용</label>
+          <textarea id="e-note" placeholder="업무 내용을 입력하세요..." style="flex:1;min-height:180px;resize:vertical;"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" id="e-delete-btn" style="color:#A32D2D;display:none;" onclick="deleteEditTask()"><i class="ti ti-trash"></i> 삭제</button>
+          <div class="modal-footer-right">
+            <button class="btn" onclick="closeEditModal()">취소</button>
+            <button class="btn btn-primary" onclick="saveEditTask()">저장</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings slide panel (gear) -->
+      <div class="modal-edit-panel" id="settings-panel">
+        <div class="modal-edit-panel-inner">
+          <div class="panel-label" style="margin-bottom:12px;">상세 설정</div>
+
+          <div class="field">
+            <label>프로젝트</label>
+            <select id="e-project"><option value="">선택 안함</option></select>
+          </div>
+          <div class="field">
+            <label>담당자</label>
+            <select id="e-assignee">
+              <option value="">없음</option>
+              <option value="나">나</option>
+              <option value="팀원 A">팀원 A</option>
+              <option value="팀원 B">팀원 B</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="panel-label">우선순위</div>
+            <div class="btn-group-row" id="e-priority-group">
+              <button class="choice-btn" data-val="high" onclick="selectPriority(&#39;e&#39;,this)">높음</button>
+              <button class="choice-btn sel-mid" data-val="mid" onclick="selectPriority(&#39;e&#39;,this)">보통</button>
+              <button class="choice-btn" data-val="low" onclick="selectPriority(&#39;e&#39;,this)">낮음</button>
+            </div>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <div class="panel-label">업무난이도</div>
+            <div class="btn-group-row" id="e-level-group">
+              <button class="choice-btn sel-lv" data-val="1" onclick="selectLevel(&#39;e&#39;,this)">Lv.1</button>
+              <button class="choice-btn" data-val="2" onclick="selectLevel(&#39;e&#39;,this)">Lv.2</button>
+              <button class="choice-btn" data-val="3" onclick="selectLevel(&#39;e&#39;,this)">Lv.3</button>
+              <button class="choice-btn" data-val="4" onclick="selectLevel(&#39;e&#39;,this)">Lv.4</button>
+              <button class="choice-btn" data-val="5" onclick="selectLevel(&#39;e&#39;,this)">Lv.5</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modal-edit-body -->
+  </div>
+</div>
+
+
 <script>
-const MEMBER_COLORS = {
-  '나':     { bg:'#E6F1FB', text:'#185FA5' },
-  '팀원 A': { bg:'#EAF3DE', text:'#3B6D11' },
-  '팀원 B': { bg:'#FAEEDA', text:'#854F0B' },
-};
+/* ══════════════════════════════════════
+   DATA & PERSISTENCE
+══════════════════════════════════════ */
+const MEMBER_COLORS   = { '나':{ bg:'#E6F1FB', text:'#185FA5' }, '팀원 A':{ bg:'#EAF3DE', text:'#3B6D11' }, '팀원 B':{ bg:'#FAEEDA', text:'#854F0B' } };
 const MEMBER_INITIALS = { '나':'나', '팀원 A':'A', '팀원 B':'B' };
+const PRI_ORDER       = { high:0, mid:1, low:2 };
+const STATUS_CYCLE    = ['todo','inprogress','wait','done'];
+const STATUS_LABELS   = { todo:'할 일', inprogress:'진행 중', wait:'대기', done:'완료' };
+const STATUS_CLASS    = { todo:'s-todo', inprogress:'s-inprogress', wait:'s-wait', done:'s-done' };
 
 let tasks = [], projects = [], editId = null;
+let cStatusVal = 'todo', eStatusVal = 'todo';
 
 function load() {
   try { tasks    = JSON.parse(localStorage.getItem('ws_tasks')    || '[]'); } catch(e) { tasks = []; }
   try { projects = JSON.parse(localStorage.getItem('ws_projects') || '["웹 리디자인","앱 개발","마케팅","기타"]'); } catch(e) { projects = []; }
+  /* migrate old 'review' → 'wait' */
+  tasks.forEach(t => { if (t.status === 'review') t.status = 'wait'; });
 }
-
 function persist() {
   localStorage.setItem('ws_tasks',    JSON.stringify(tasks));
   localStorage.setItem('ws_projects', JSON.stringify(projects));
 }
-
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function daysUntil(d) { if (!d) return null; return Math.ceil((new Date(d) - new Date()) / 86400000); }
 
-function daysUntil(d) {
-  if (!d) return null;
-  return Math.ceil((new Date(d) - new Date()) / 86400000);
-}
-
+/* ══════════════════════════════════════
+   FILTERING & SORTING
+══════════════════════════════════════ */
 function getFiltered() {
   const q    = document.getElementById('search-input').value.toLowerCase();
   const proj = document.getElementById('filter-project').value;
   const ass  = document.getElementById('filter-assignee').value;
   const pri  = document.getElementById('filter-priority').value;
-  return tasks.filter(t =>
-    (!q    || t.title.toLowerCase().includes(q) || (t.project||'').toLowerCase().includes(q)) &&
-    (!proj || t.project  === proj) &&
-    (!ass  || t.assignee === ass)  &&
-    (!pri  || t.priority === pri)
-  );
+  return tasks
+    .filter(t =>
+      (!q    || t.title.toLowerCase().includes(q) || (t.project||'').toLowerCase().includes(q)) &&
+      (!proj || t.project  === proj) &&
+      (!ass  || t.assignee === ass)  &&
+      (!pri  || t.priority === pri)
+    )
+    .sort((a,b) => (PRI_ORDER[a.priority]??1) - (PRI_ORDER[b.priority]??1));
 }
 
+/* ══════════════════════════════════════
+   HTML HELPERS
+══════════════════════════════════════ */
 function avatarHtml(name) {
   if (!name) return '';
   const c = MEMBER_COLORS[name] || { bg:'#F1EFE8', text:'#5F5E5A' };
   const i = MEMBER_INITIALS[name] || name[0];
   return `<div class="avatar" style="background:${c.bg};color:${c.text};">${i}</div>`;
 }
-
 function priorityHtml(p) {
   return { high:`<span class="priority p-high">높음</span>`, mid:`<span class="priority p-mid">보통</span>`, low:`<span class="priority p-low">낮음</span>` }[p] || '';
 }
-
+function levelHtml(lv) {
+  return lv ? `<span class="lv-badge">Lv.${lv}</span>` : '';
+}
 function statusHtml(s) {
-  return { todo:`<span class="status-badge s-todo">할 일</span>`, inprogress:`<span class="status-badge s-inprogress">진행 중</span>`, review:`<span class="status-badge s-review">검토</span>`, done:`<span class="status-badge s-done">완료</span>` }[s] || '';
+  const cls = STATUS_CLASS[s] || 's-todo';
+  return `<span class="status-badge ${cls}">${STATUS_LABELS[s]||s}</span>`;
 }
 
-function dueHtml(d) {
-  if (!d) return '';
+/* D-day label for kanban card */
+function cardDueHtml(d, isDone) {
+  if (isDone || !d) return '';
   const days = daysUntil(d);
-  const overdue = days < 0;
-  const soon    = !overdue && days <= 3;
-  const label   = overdue ? `${Math.abs(days)}일 초과` : days === 0 ? '오늘' : `${days}일 후`;
-  const cls     = overdue ? 'due overdue' : soon ? 'due soon' : 'due';
-  return `<span class="${cls}"><i class="ti ti-calendar" style="font-size:11px;vertical-align:-1px;"></i> ${label}</span>`;
+  if (days === null) return '';
+  let cls = 'due-label', label = '';
+  if (days < 0)       { cls += ' overdue'; label = `D+${Math.abs(days)}`; }
+  else if (days === 0){ cls += ' d-day';   label = 'D-Day'; }
+  else if (days <= 3) { cls += ' d3';      label = `D-${days}`; }
+  else if (days <= 7) { cls += ' d7';      label = `D-${days}`; }
+  else                { label = `D-${days}`; }
+  return `<span class="${cls}">${label}</span>`;
 }
 
+/* Card urgency CSS class */
+function cardUrgencyClass(d, isDone) {
+  if (isDone || !d) return '';
+  const days = daysUntil(d);
+  if (days === null) return '';
+  if (days === 0 || days < 0) return 'urgent-day';
+  if (days <= 3)  return 'urgent-d3';
+  if (days <= 7)  return 'urgent-d7';
+  return '';
+}
+
+/* Due label for list view */
+function listDueHtml(d) {
+  if (!d) return '-';
+  const days = daysUntil(d);
+  let cls = 'due-label', label = '';
+  if (days < 0)       { cls += ' overdue'; label = `D+${Math.abs(days)}`; }
+  else if (days === 0){ cls += ' d-day';   label = 'D-Day'; }
+  else if (days <= 3) { cls += ' d3';      label = `D-${days}`; }
+  else if (days <= 7) { cls += ' d7';      label = `D-${days}`; }
+  else                { label = `D-${days}`; }
+  return `<span class="${cls}">${label}</span>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ══════════════════════════════════════
+   RENDER
+══════════════════════════════════════ */
 function renderStats() {
   document.getElementById('st-total').textContent      = tasks.length;
   document.getElementById('st-inprogress').textContent = tasks.filter(t => t.status === 'inprogress').length;
@@ -727,21 +726,31 @@ function renderStats() {
 }
 
 function renderKanban() {
-  const cols = { todo:[], inprogress:[], review:[], done:[] };
+  const cols = { todo:[], inprogress:[], wait:[], done:[] };
   getFiltered().forEach(t => { if (cols[t.status]) cols[t.status].push(t); });
   Object.entries(cols).forEach(([status, arr]) => {
     document.getElementById('cnt-' + status).textContent = arr.length;
     const el = document.getElementById('col-' + status);
     if (!arr.length) { el.innerHTML = '<div class="empty-col">없음</div>'; return; }
-    el.innerHTML = arr.map(t => `
-      <div class="task-card" onclick="openModal('${t.id}')">
-        <div class="task-title">${escHtml(t.title)}</div>
-        <div class="task-meta">${priorityHtml(t.priority)} ${dueHtml(t.due)}</div>
-        <div class="task-footer">
-          <span class="project-tag">${escHtml(t.project||'')}</span>
-          ${avatarHtml(t.assignee)}
-        </div>
-      </div>`).join('');
+    el.innerHTML = arr.map(t => {
+      const isDone   = t.status === 'done';
+      const urgency  = cardUrgencyClass(t.due, isDone);
+      const dueHtml  = cardDueHtml(t.due, isDone);
+      return `
+        <div class="task-card${urgency?' '+urgency:''}" onclick="openEditModal('${t.id}')">
+          <div class="task-card-top">
+            <div class="task-title">${escHtml(t.title)}</div>
+            <div class="task-card-badges">
+              ${avatarHtml(t.assignee)}
+              ${priorityHtml(t.priority)}
+              ${levelHtml(t.level)}
+            </div>
+          </div>
+          <div class="task-bottom">
+            ${dueHtml}
+          </div>
+        </div>`;
+    }).join('');
   });
 }
 
@@ -749,7 +758,7 @@ function renderList() {
   const body = document.getElementById('list-body');
   const arr  = getFiltered();
   if (!arr.length) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:2rem;">태스크가 없습니다</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-tertiary);padding:2rem;">태스크가 없습니다</td></tr>';
     return;
   }
   body.innerHTML = arr.map(t => `
@@ -758,11 +767,10 @@ function renderList() {
       <td style="color:var(--text-secondary);">${escHtml(t.project||'-')}</td>
       <td>${t.assignee ? `<div style="display:flex;align-items:center;gap:6px;">${avatarHtml(t.assignee)}<span>${escHtml(t.assignee)}</span></div>` : '-'}</td>
       <td>${priorityHtml(t.priority)}</td>
-      <td>${t.due ? dueHtml(t.due) : '-'}</td>
+      <td>${levelHtml(t.level)||'-'}</td>
+      <td>${listDueHtml(t.due)}</td>
       <td>${statusHtml(t.status)}</td>
-      <td>
-        <button class="btn btn-sm" onclick="openModal('${t.id}')"><i class="ti ti-edit"></i></button>
-      </td>
+      <td><button class="btn btn-sm" onclick="openEditModal('${t.id}')"><i class="ti ti-edit"></i></button></td>
     </tr>`).join('');
 }
 
@@ -770,16 +778,40 @@ function renderProjects() {
   const list = document.getElementById('project-list');
   if (!projects.length) { list.innerHTML = '<div class="empty-col">프로젝트가 없습니다</div>'; return; }
   list.innerHTML = projects.map((p, i) => {
-    const count = tasks.filter(t => t.project === p).length;
+    const ptasks = tasks.filter(t => t.project === p);
+    const taskRows = ptasks.length
+      ? ptasks.sort((a,b)=>(PRI_ORDER[a.priority]??1)-(PRI_ORDER[b.priority]??1)).map(t => `
+          <div class="project-task-row" onclick="openEditModal('${t.id}')">
+            <div class="project-task-title">${escHtml(t.title)}</div>
+            <div class="project-task-meta">
+              ${priorityHtml(t.priority)}
+              ${levelHtml(t.level)}
+              ${statusHtml(t.status)}
+              ${listDueHtml(t.due)}
+            </div>
+          </div>`).join('')
+      : '<div style="padding:10px 14px;font-size:12px;color:var(--text-tertiary);">태스크 없음</div>';
     return `
-      <div class="project-item">
-        <div>
-          <div class="project-item-name">${escHtml(p)}</div>
-          <div class="project-item-count">태스크 ${count}개</div>
+      <div class="project-item" id="pi-${i}">
+        <div class="project-item-header" onclick="toggleProject(${i})">
+          <div class="project-item-left">
+            <i class="ti ti-chevron-right project-chevron"></i>
+            <div>
+              <div class="project-item-name">${escHtml(p)}</div>
+              <div class="project-item-count">태스크 ${ptasks.length}개</div>
+            </div>
+          </div>
+          <div class="project-item-actions" onclick="event.stopPropagation()">
+            <button class="btn btn-sm" style="color:#A32D2D;" onclick="deleteProject(${i})"><i class="ti ti-trash"></i></button>
+          </div>
         </div>
-        <button class="btn btn-sm" style="color:#A32D2D;" onclick="deleteProject(${i})"><i class="ti ti-trash"></i></button>
+        <div class="project-task-list">${taskRows}</div>
       </div>`;
   }).join('');
+}
+
+function toggleProject(i) {
+  document.getElementById('pi-' + i).classList.toggle('expanded');
 }
 
 function updateFilterOptions() {
@@ -793,10 +825,12 @@ function updateFilterOptions() {
   as.innerHTML = '<option value="">모든 담당자</option>' + assignees.map(a => `<option value="${a}"${cura===a?' selected':''}>${escHtml(a)}</option>`).join('');
 }
 
-function updateModalProjects() {
-  const sel = document.getElementById('f-project');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">선택 안함</option>' + projects.map(p => `<option value="${p}"${cur===p?' selected':''}>${escHtml(p)}</option>`).join('');
+function updateProjectSelects() {
+  ['c-project','e-project'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">선택 안함</option>' + projects.map(p => `<option value="${p}"${cur===p?' selected':''}>${escHtml(p)}</option>`).join('');
+  });
 }
 
 function renderAll() {
@@ -807,6 +841,9 @@ function renderAll() {
   renderProjects();
 }
 
+/* ══════════════════════════════════════
+   TAB SWITCH
+══════════════════════════════════════ */
 function switchTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t  => t.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -814,73 +851,196 @@ function switchTab(tab, el) {
   document.getElementById('view-' + tab).classList.add('active');
 }
 
-function openModal(id) {
-  editId = id || null;
-  updateModalProjects();
-  const del = document.getElementById('delete-btn');
-  if (id) {
-    const t = tasks.find(x => x.id === id);
-    if (!t) return;
-    document.getElementById('modal-title').textContent = '태스크 수정';
-    document.getElementById('f-title').value    = t.title;
-    document.getElementById('f-project').value  = t.project || '';
-    document.getElementById('f-assignee').value = t.assignee || '';
-    document.getElementById('f-priority').value = t.priority;
-    document.getElementById('f-due').value      = t.due || '';
-    document.getElementById('f-status').value   = t.status;
-    document.getElementById('f-note').value     = t.note || '';
-    del.style.display = 'flex';
-  } else {
-    document.getElementById('modal-title').textContent = '새 태스크';
-    document.getElementById('f-title').value    = '';
-    document.getElementById('f-project').value  = '';
-    document.getElementById('f-assignee').value = '';
-    document.getElementById('f-priority').value = 'mid';
-    document.getElementById('f-due').value      = '';
-    document.getElementById('f-status').value   = 'todo';
-    document.getElementById('f-note').value     = '';
-    del.style.display = 'none';
-  }
-  document.getElementById('modal-bg').classList.add('open');
-  setTimeout(() => document.getElementById('f-title').focus(), 50);
+/* ══════════════════════════════════════
+   BUTTON-GROUP HELPERS
+══════════════════════════════════════ */
+function selectPriority(prefix, btn) {
+  const grp = document.getElementById(prefix + '-priority-group');
+  grp.querySelectorAll('.choice-btn').forEach(b => {
+    b.className = 'choice-btn';
+  });
+  const v = btn.dataset.val;
+  btn.classList.add(v === 'high' ? 'sel-high' : v === 'mid' ? 'sel-mid' : 'sel-low');
 }
 
-function closeModal()  { document.getElementById('modal-bg').classList.remove('open'); }
-function closeModalBg(e) { if (e.target === document.getElementById('modal-bg')) closeModal(); }
+function selectLevel(prefix, btn) {
+  const grp = document.getElementById(prefix + '-level-group');
+  grp.querySelectorAll('.choice-btn').forEach(b => b.className = 'choice-btn');
+  btn.classList.add('sel-lv');
+}
 
-function saveTask() {
-  const title = document.getElementById('f-title').value.trim();
-  if (!title) { document.getElementById('f-title').focus(); return; }
+function getSelectedPriority(prefix) {
+  const grp = document.getElementById(prefix + '-priority-group');
+  const sel = grp.querySelector('.choice-btn.sel-high, .choice-btn.sel-mid, .choice-btn.sel-low');
+  return sel ? sel.dataset.val : 'mid';
+}
+
+function getSelectedLevel(prefix) {
+  const grp = document.getElementById(prefix + '-level-group');
+  const sel = grp.querySelector('.choice-btn.sel-lv');
+  return sel ? sel.dataset.val : '1';
+}
+
+function setPriority(prefix, val) {
+  const grp = document.getElementById(prefix + '-priority-group');
+  grp.querySelectorAll('.choice-btn').forEach(b => {
+    b.className = 'choice-btn';
+    if (b.dataset.val === val) b.classList.add(val === 'high' ? 'sel-high' : val === 'mid' ? 'sel-mid' : 'sel-low');
+  });
+}
+
+function setLevel(prefix, val) {
+  const grp = document.getElementById(prefix + '-level-group');
+  grp.querySelectorAll('.choice-btn').forEach(b => {
+    b.className = 'choice-btn';
+    if (b.dataset.val === String(val)) b.classList.add('sel-lv');
+  });
+}
+
+/* ══════════════════════════════════════
+   STATUS PILL
+══════════════════════════════════════ */
+function updateStatusPill(id, val) {
+  const pill = document.getElementById(id);
+  pill.className = 'status-pill ' + (STATUS_CLASS[val]||'s-todo');
+  pill.textContent = STATUS_LABELS[val] || val;
+}
+
+function cycleCreateStatus() {
+  const idx = STATUS_CYCLE.indexOf(cStatusVal);
+  cStatusVal = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+  updateStatusPill('c-status-pill', cStatusVal);
+}
+
+function cycleEditStatus() {
+  const idx = STATUS_CYCLE.indexOf(eStatusVal);
+  eStatusVal = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+  updateStatusPill('e-status-pill', eStatusVal);
+}
+
+/* ══════════════════════════════════════
+   CREATE MODAL
+══════════════════════════════════════ */
+function openCreateModal() {
+  updateProjectSelects();
+  cStatusVal = 'todo';
+  updateStatusPill('c-status-pill', cStatusVal);
+  document.getElementById('c-title').value    = '';
+  document.getElementById('c-project').value  = '';
+  document.getElementById('c-assignee').value = '';
+  document.getElementById('c-due').value      = '';
+  setPriority('c', 'mid');
+  setLevel('c', '1');
+  document.getElementById('create-modal-bg').classList.add('open');
+  setTimeout(() => document.getElementById('c-title').focus(), 50);
+}
+
+function closeCreateModal()  { document.getElementById('create-modal-bg').classList.remove('open'); }
+function closeCreateModalBg(e) { if (e.target === document.getElementById('create-modal-bg')) closeCreateModal(); }
+
+function saveCreateTask() {
+  const title = document.getElementById('c-title').value.trim();
+  if (!title) { document.getElementById('c-title').focus(); return; }
   const data = {
-    id:        editId || uid(),
+    id:        uid(),
     title,
-    project:   document.getElementById('f-project').value,
-    assignee:  document.getElementById('f-assignee').value,
-    priority:  document.getElementById('f-priority').value,
-    due:       document.getElementById('f-due').value,
-    status:    document.getElementById('f-status').value,
-    note:      document.getElementById('f-note').value,
-    createdAt: editId ? (tasks.find(t => t.id === editId)||{}).createdAt : Date.now()
+    project:   document.getElementById('c-project').value,
+    assignee:  document.getElementById('c-assignee').value,
+    priority:  getSelectedPriority('c'),
+    level:     getSelectedLevel('c'),
+    due:       document.getElementById('c-due').value,
+    status:    cStatusVal,
+    note:      '',
+    createdAt: Date.now()
   };
-  if (editId) {
-    const idx = tasks.findIndex(t => t.id === editId);
-    if (idx !== -1) tasks[idx] = data;
-  } else {
-    tasks.unshift(data);
-  }
+  tasks.unshift(data);
   persist();
-  closeModal();
+  closeCreateModal();
   renderAll();
 }
 
-function deleteCurrentTask() {
+/* ══════════════════════════════════════
+   EDIT MODAL
+══════════════════════════════════════ */
+function openEditModal(id) {
+  editId = id;
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+
+  updateProjectSelects();
+
+  /* header title */
+  document.getElementById('e-title-display').textContent = t.title;
+
+  /* status pill */
+  eStatusVal = t.status || 'todo';
+  updateStatusPill('e-status-pill', eStatusVal);
+
+  /* main fields */
+  document.getElementById('e-title').value = t.title;
+  document.getElementById('e-due').value   = t.due || '';
+  document.getElementById('e-note').value  = t.note || '';
+
+  /* panel fields */
+  document.getElementById('e-project').value  = t.project || '';
+  document.getElementById('e-assignee').value = t.assignee || '';
+  setPriority('e', t.priority || 'mid');
+  setLevel('e', t.level || '1');
+
+  document.getElementById('e-delete-btn').style.display = 'flex';
+
+  /* close panel if open */
+  document.getElementById('settings-panel').classList.remove('open');
+  document.getElementById('gear-btn').classList.remove('active');
+
+  document.getElementById('edit-modal-bg').classList.add('open');
+  setTimeout(() => document.getElementById('e-title').focus(), 50);
+}
+
+function closeEditModal()  { document.getElementById('edit-modal-bg').classList.remove('open'); }
+function closeEditModalBg(e) { if (e.target === document.getElementById('edit-modal-bg')) closeEditModal(); }
+
+function toggleSettingsPanel() {
+  const panel = document.getElementById('settings-panel');
+  const btn   = document.getElementById('gear-btn');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
+}
+
+function saveEditTask() {
+  const title = document.getElementById('e-title').value.trim();
+  if (!title) { document.getElementById('e-title').focus(); return; }
+  const orig = tasks.find(t => t.id === editId) || {};
+  const data = {
+    id:        editId,
+    title,
+    project:   document.getElementById('e-project').value,
+    assignee:  document.getElementById('e-assignee').value,
+    priority:  getSelectedPriority('e'),
+    level:     getSelectedLevel('e'),
+    due:       document.getElementById('e-due').value,
+    status:    eStatusVal,
+    note:      document.getElementById('e-note').value,
+    createdAt: orig.createdAt || Date.now()
+  };
+  const idx = tasks.findIndex(t => t.id === editId);
+  if (idx !== -1) tasks[idx] = data;
+  persist();
+  closeEditModal();
+  renderAll();
+}
+
+function deleteEditTask() {
   if (!editId || !confirm('이 태스크를 삭제할까요?')) return;
   tasks = tasks.filter(t => t.id !== editId);
   persist();
-  closeModal();
+  closeEditModal();
   renderAll();
 }
 
+/* ══════════════════════════════════════
+   PROJECT ACTIONS
+══════════════════════════════════════ */
 function addProject() {
   const input = document.getElementById('new-project-input');
   const name  = input.value.trim();
@@ -899,27 +1059,58 @@ function deleteProject(i) {
   renderAll();
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/* ══════════════════════════════════════
+   EXCEL DOWNLOAD
+══════════════════════════════════════ */
+function downloadExcel() {
+  const arr = getFiltered();
+  const header = ['태스크', '프로젝트', '담당자', '우선순위', '난이도', '마감일', '상태', '업무내용'];
+  const priLabel = { high:'높음', mid:'보통', low:'낮음' };
+  const rows = arr.map(t => [
+    t.title,
+    t.project || '',
+    t.assignee || '',
+    priLabel[t.priority] || t.priority,
+    t.level ? 'Lv.' + t.level : '',
+    t.due || '',
+    STATUS_LABELS[t.status] || t.status,
+    (t.note || '').replace(/\n/g,' ')
+  ]);
+
+  /* Build CSV with BOM for Excel Korean support */
+  const BOM = '\uFEFF';
+  const escape = v => `"${String(v).replace(/"/g,'""')}"`;
+  const lines  = [header, ...rows].map(r => r.map(escape).join(','));
+  const csv    = BOM + lines.join('\r\n');
+
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = '태스크_목록.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
-// Init — 인증 후 load() + initSample() 호출
-
+/* ══════════════════════════════════════
+   AUTH
+══════════════════════════════════════ */
 function dayOffset(n) {
   const d = new Date();
   d.setDate(d.getDate() + n);
   return d.toISOString().slice(0,10);
 }
 
-// ── 비밀번호 잠금 ──────────────────────────────
-const PASSWORD = 'yujin12345!!'; // ← 여기서 비밀번호 변경
+const PASSWORD = 'yujin12345!!';
 
 function tryUnlock() {
   const val = document.getElementById('lock-input').value;
   if (val === PASSWORD) {
     sessionStorage.setItem('ws_auth', '1');
     document.getElementById('lock-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
+    document.getElementById('main-app').style.display    = 'block';
     load();
     if (!tasks.length) initSample();
     renderAll();
@@ -932,10 +1123,9 @@ function tryUnlock() {
   }
 }
 
-// 이미 인증된 세션이면 바로 입장
 if (sessionStorage.getItem('ws_auth') === '1') {
   document.getElementById('lock-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('main-app').style.display    = 'block';
   load();
   if (!tasks.length) initSample();
   renderAll();
@@ -945,15 +1135,16 @@ if (sessionStorage.getItem('ws_auth') === '1') {
 
 function initSample() {
   tasks = [
-    { id:uid(), title:'랜딩 페이지 디자인', project:'웹 리디자인', assignee:'나',     priority:'high', due: dayOffset(2),  status:'inprogress', note:'', createdAt:Date.now() },
-    { id:uid(), title:'사용자 인터뷰 정리', project:'마케팅',     assignee:'팀원 A', priority:'mid',  due: dayOffset(5),  status:'todo',       note:'', createdAt:Date.now() },
-    { id:uid(), title:'API 연동 테스트',    project:'앱 개발',     assignee:'팀원 B', priority:'high', due: dayOffset(-1), status:'review',     note:'', createdAt:Date.now() },
-    { id:uid(), title:'주간 보고서 작성',   project:'기타',        assignee:'나',     priority:'low',  due: dayOffset(7),  status:'todo',       note:'', createdAt:Date.now() },
-    { id:uid(), title:'로고 시안 확인',     project:'웹 리디자인', assignee:'팀원 A', priority:'mid',  due: dayOffset(1),  status:'done',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'랜딩 페이지 디자인', project:'웹 리디자인', assignee:'나',     priority:'high', level:'3', due:dayOffset(2),  status:'inprogress', note:'메인 비주얼 영역 먼저 작업 예정', createdAt:Date.now() },
+    { id:uid(), title:'사용자 인터뷰 정리', project:'마케팅',      assignee:'팀원 A', priority:'mid',  level:'2', due:dayOffset(5),  status:'todo',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'API 연동 테스트',    project:'앱 개발',     assignee:'팀원 B', priority:'high', level:'4', due:dayOffset(-1), status:'wait',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'주간 보고서 작성',   project:'기타',        assignee:'나',     priority:'low',  level:'1', due:dayOffset(7),  status:'todo',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'로고 시안 확인',     project:'웹 리디자인', assignee:'팀원 A', priority:'mid',  level:'2', due:dayOffset(1),  status:'done',       note:'', createdAt:Date.now() },
   ];
   persist();
 }
 </script>
 </div><!-- /main-app -->
-</body>
-</html>
+
+
+</body></html>
