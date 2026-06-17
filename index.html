@@ -106,6 +106,11 @@
       padding: 12px 14px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
+      height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
     }
     .task-card:hover { border-color: var(--border-mid); }
 
@@ -115,11 +120,11 @@
     .task-card.urgent-day { background:#FFD0D0; border-color:#B81C1C; border-width:2px; }
 
     /* Card inner layout */
-    .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; }
-    /* 1. 배지 세로 배치 */
+    .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+    /* 배지 세로 배치 */
     .task-card-badges { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
-    .task-title { font-size:14.3px; font-weight:500; color:var(--text-primary); line-height:1.4; }
-    .task-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
+    .task-title { font-size:14.3px; font-weight:500; color:var(--text-primary); line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .task-bottom { display:flex; align-items:center; justify-content:flex-start; }
 
     /* ── Priority badges ── */
     .priority { font-size:11px; padding:2px 7px; border-radius:10px; font-weight:500; white-space:nowrap; }
@@ -182,9 +187,10 @@
       background:var(--bg-primary);
       border-radius:var(--radius-lg);
       border:0.5px solid var(--border-light);
-      width:100%;
-      max-width:1080px;
-      max-height:95vh;
+      width:90vw;
+      max-width:700px;
+      height:78vh;
+      max-height:700px;
       overflow:hidden;
       display:flex;
       flex-direction:column;
@@ -274,7 +280,7 @@
     }
     .field textarea { resize:vertical; }
     .field-note { flex:1; display:flex; flex-direction:column; }
-    .field-note textarea { flex:1; min-height:340px; }
+    .field-note textarea { flex:1; min-height:240px; }
 
     /* Button group (priority / level) */
     .btn-group-row { display:flex; gap:5px; flex-wrap:wrap; }
@@ -349,7 +355,7 @@
 <!-- ── Lock screen ── -->
 <div class="lock-screen" id="lock-screen">
   <div class="lock-card">
-    <div class="lock-icon"><i class="ti ti-lock"></i></div>
+    <div class="lock-icon">🔒</div>
     <div class="lock-title">내 워크스페이스</div>
     <div class="lock-sub">초대받은 분만 입장할 수 있어요.</div>
     <input class="lock-input" type="password" id="lock-input" placeholder="비밀번호 입력" onkeydown="if(event.key===&#39;Enter&#39;)tryUnlock()">
