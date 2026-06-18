@@ -4,7 +4,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>내 워크스페이스</title>
-  <link rel="stylesheet" href="./index_files/tabler-icons.min.css">
+  <link rel="stylesheet" href="file:///C:/Users/JHKIM2/Downloads/index_files/tabler-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -92,6 +92,13 @@
     .kanban { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
     @media (max-width:768px) { .kanban { grid-template-columns:repeat(2,1fr); } }
     @media (max-width:480px) { .kanban { grid-template-columns:1fr; } }
+
+    .kanban > div {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 12px 10px 14px;
+    }
 
     .col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
     .col-title { font-size:12px; font-weight:500; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
@@ -638,7 +645,13 @@ function persist() {
   localStorage.setItem('ws_projects', JSON.stringify(projects));
 }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
-function daysUntil(d) { if (!d) return null; return Math.ceil((new Date(d) - new Date()) / 86400000); }
+function daysUntil(d) {
+  if (!d) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(d + 'T00:00:00');
+  return Math.round((due - today) / 86400000);
+}
 
 /* ══════════════════════════════════════
    FILTERING & SORTING
