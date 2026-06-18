@@ -89,7 +89,7 @@
     .view.active { display:block; }
 
     /* ── Kanban board ── */
-    .kanban { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .kanban { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; align-items:start; }
     @media (max-width:768px) { .kanban { grid-template-columns:repeat(2,1fr); } }
     @media (max-width:480px) { .kanban { grid-template-columns:1fr; } }
 
@@ -98,12 +98,14 @@
       border: 1px solid var(--border-mid);
       border-radius: var(--radius-lg);
       padding: 12px 10px 14px;
+      display: flex;
+      flex-direction: column;
     }
 
-    .col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-shrink:0; }
     .col-title { font-size:12px; font-weight:500; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
     .col-count { font-size:11px; background:var(--bg-secondary); color:var(--text-tertiary); border-radius:10px; padding:1px 7px; }
-    .col-body { display:flex; flex-direction:column; gap:8px; min-height:80px; overflow-y:auto; padding-right:2px; }
+    .col-body { display:flex; flex-direction:column; gap:8px; max-height:560px; overflow-y:auto; padding-right:4px; }
     .col-body::-webkit-scrollbar { width:4px; }
     .col-body::-webkit-scrollbar-track { background:transparent; }
     .col-body::-webkit-scrollbar-thumb { background:var(--border-mid); border-radius:4px; }
@@ -130,10 +132,9 @@
 
     /* Card inner layout */
     .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
-    /* 배지 세로 배치 */
     .task-card-badges { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
-    .task-title { font-size:15.5px; font-weight:500; color:var(--text-primary); line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
-    .task-bottom { display:flex; align-items:center; justify-content:flex-start; }
+    .task-title { font-size:15.5px; font-weight:500; color:var(--text-primary); line-height:1.4; }
+    .task-bottom { display:flex; align-items:center; justify-content:flex-start; min-height:0; }
 
     /* ── Priority badges ── */
     .priority { font-size:11.9px; padding:2px 7px; border-radius:10px; font-weight:500; white-space:nowrap; }
@@ -814,20 +815,6 @@ function renderKanban() {
           </div>
         </div>`;
     }).join('');
-
-    /* 4개 카드까지만 보이도록 max-height 동적 계산 */
-    setTimeout(() => {
-      const cards = el.querySelectorAll('.task-card');
-      if (cards.length > 4) {
-        const gap = 8;
-        let h = 0;
-        for (let i = 0; i < 4; i++) h += cards[i].getBoundingClientRect().height;
-        h += gap * 3;
-        el.style.maxHeight = h + 'px';
-      } else {
-        el.style.maxHeight = 'none';
-      }
-    }, 0);
   });
 }
 
