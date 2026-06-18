@@ -3,7 +3,7 @@
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>내 워크스페이스</title>
+  <title>Task Tracker</title>
   <link rel="stylesheet" href="file:///C:/Users/JHKIM2/Downloads/index_files/tabler-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -130,20 +130,25 @@
     .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
     /* 배지 세로 배치 */
     .task-card-badges { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
-    .task-title { font-size:14.3px; font-weight:500; color:var(--text-primary); line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .task-title { font-size:17.2px; font-weight:500; color:var(--text-primary); line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
     .task-bottom { display:flex; align-items:center; justify-content:flex-start; }
 
     /* ── Priority badges ── */
-    .priority { font-size:11px; padding:2px 7px; border-radius:10px; font-weight:500; white-space:nowrap; }
+    .priority { font-size:13.2px; padding:2px 7px; border-radius:10px; font-weight:500; white-space:nowrap; }
     .p-high { background:#FCEBEB; color:#A32D2D; }
     .p-mid  { background:#FAEEDA; color:#854F0B; }
     .p-low  { background:#EAF3DE; color:#3B6D11; }
 
-    /* ── Level badge ── */
-    .lv-badge { font-size:10px; padding:2px 6px; border-radius:10px; background:#E6F1FB; color:#185FA5; font-weight:500; white-space:nowrap; }
+    /* ── Level badge — 색상별 구분 (1=초록, 2=파랑, 3=노랑, 4=빨강, 5=보라) ── */
+    .lv-badge { font-size:12px; padding:2px 6px; border-radius:10px; font-weight:500; white-space:nowrap; }
+    .lv-1 { background:#EAF3DE; color:#3B6D11; }
+    .lv-2 { background:#E6F1FB; color:#185FA5; }
+    .lv-3 { background:#FFFACC; color:#7A6200; }
+    .lv-4 { background:#FCEBEB; color:#A32D2D; }
+    .lv-5 { background:#F3E8FB; color:#6B21A8; }
 
     /* ── Due label ── */
-    .due-label { font-size:11px; color:var(--text-tertiary); }
+    .due-label { font-size:13.2px; color:var(--text-tertiary); }
     .due-label.overdue { display:inline-block; background:#C0392B; color:#fff; font-weight:700; padding:2px 7px; border-radius:10px; }
     .due-label.d-day   { display:inline-block; background:#C0392B; color:#fff; font-weight:700; padding:2px 7px; border-radius:10px; }
     .due-label.d3      { display:inline-block; background:#E74C3C; color:#fff; font-weight:600; padding:2px 7px; border-radius:10px; }
@@ -363,7 +368,7 @@
 <div class="lock-screen" id="lock-screen">
   <div class="lock-card">
     <div class="lock-icon">🔒</div>
-    <div class="lock-title">내 워크스페이스</div>
+    <div class="lock-title">Task Tracker</div>
     <div class="lock-sub">초대받은 분만 입장할 수 있어요.</div>
     <input class="lock-input" type="password" id="lock-input" placeholder="비밀번호 입력" onkeydown="if(event.key===&#39;Enter&#39;)tryUnlock()">
     <div class="lock-error" id="lock-error">비밀번호가 올바르지 않아요.</div>
@@ -377,13 +382,14 @@
 <!-- ── Topbar ── -->
 <div class="topbar">
   <div class="topbar-logo">
-    🗂️ 내 워크스페이스
+    🗂️ Task Tracker
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="tabs">
       <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)">📋 보드</button>
       <button class="tab" onclick="switchTab(&#39;list&#39;,this)">📄 목록</button>
       <button class="tab" onclick="switchTab(&#39;projects&#39;,this)">📁 프로젝트</button>
+      <button class="tab" onclick="openMemoModal()">📝 메모장</button>
     </div>
     <button class="btn btn-primary" onclick="openCreateModal()">＋ 태스크</button>
   </div>
@@ -619,6 +625,21 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     MEMO MODAL
+══════════════════════════════════════ -->
+<div class="modal-bg" id="memo-modal-bg" onclick="closeMemoModalBg(event)">
+  <div class="modal" style="max-width:560px; height:520px; display:flex; flex-direction:column;">
+    <div class="modal-header">
+      <h2>📝 메모장</h2>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="memo-saved-indicator" style="font-size:11px;color:var(--text-tertiary);transition:opacity 0.3s;opacity:0;">저장됨 ✓</span>
+        <button class="gear-btn" onclick="closeMemoModal()" title="닫기" style="font-size:16px;">✕</button>
+      </div>
+    </div>
+    <textarea id="memo-textarea" placeholder="여기에 자유롭게 메모하세요..." style="flex:1;width:100%;font-family:inherit;font-size:14px;padding:10px 12px;border-radius:var(--radius-md);border:0.5px solid var(--border-mid);background:var(--bg-secondary);color:var(--text-primary);resize:none;line-height:1.7;" oninput="saveMemo()"></textarea>
+  </div>
+</div>
 
 <script>
 /* ══════════════════════════════════════
@@ -684,7 +705,9 @@ function priorityHtml(p) {
   return { high:`<span class="priority p-high">높음</span>`, mid:`<span class="priority p-mid">보통</span>`, low:`<span class="priority p-low">낮음</span>` }[p] || '';
 }
 function levelHtml(lv) {
-  return lv ? `<span class="lv-badge">Lv.${lv}</span>` : '';
+  if (!lv) return '';
+  const cls = ['lv-1','lv-2','lv-3','lv-4','lv-5'][parseInt(lv)-1] || 'lv-1';
+  return `<span class="lv-badge ${cls}">Lv.${lv}</span>`;
 }
 function statusHtml(s) {
   const cls = STATUS_CLASS[s] || 's-todo';
@@ -1018,6 +1041,24 @@ function openEditModal(id) {
 
 function closeEditModal()  { document.getElementById('edit-modal-bg').classList.remove('open'); }
 function closeEditModalBg(e) { if (e.target === document.getElementById('edit-modal-bg')) closeEditModal(); }
+
+/* ══════════════════════════════════════
+   MEMO MODAL
+══════════════════════════════════════ */
+function openMemoModal() {
+  document.getElementById('memo-textarea').value = localStorage.getItem('ws_memo') || '';
+  document.getElementById('memo-modal-bg').classList.add('open');
+  setTimeout(() => document.getElementById('memo-textarea').focus(), 50);
+}
+function closeMemoModal() { document.getElementById('memo-modal-bg').classList.remove('open'); }
+function closeMemoModalBg(e) { if (e.target === document.getElementById('memo-modal-bg')) closeMemoModal(); }
+function saveMemo() {
+  localStorage.setItem('ws_memo', document.getElementById('memo-textarea').value);
+  const ind = document.getElementById('memo-saved-indicator');
+  ind.style.opacity = '1';
+  clearTimeout(ind._t);
+  ind._t = setTimeout(() => { ind.style.opacity = '0'; }, 1500);
+}
 
 function toggleSettingsPanel() {
   const panel = document.getElementById('settings-panel');
