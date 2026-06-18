@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/JHKIM2/Downloads/index.html -->
+<!-- saved from url=(0046)file:///C:/Users/JHKIM2/Downloads/index_1.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,7 +103,7 @@
     .col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
     .col-title { font-size:12px; font-weight:500; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
     .col-count { font-size:11px; background:var(--bg-secondary); color:var(--text-tertiary); border-radius:10px; padding:1px 7px; }
-    .col-body { display:flex; flex-direction:column; gap:8px; min-height:180px; max-height:calc(4 * 110px + 3 * 8px); overflow-y:auto; padding-right:2px; }
+    .col-body { display:flex; flex-direction:column; gap:8px; min-height:80px; overflow-y:auto; padding-right:2px; }
     .col-body::-webkit-scrollbar { width:4px; }
     .col-body::-webkit-scrollbar-track { background:transparent; }
     .col-body::-webkit-scrollbar-thumb { background:var(--border-mid); border-radius:4px; }
@@ -116,7 +116,7 @@
       padding: 12px 14px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
-      height: 110px;
+      min-height: 80px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -815,6 +815,20 @@ function renderKanban() {
           </div>
         </div>`;
     }).join('');
+
+    /* 4개 카드까지만 보이도록 max-height 동적 계산 */
+    requestAnimationFrame(() => {
+      const cards = el.querySelectorAll('.task-card');
+      if (cards.length > 4) {
+        const gap = 8;
+        let h = 0;
+        for (let i = 0; i < 4; i++) h += cards[i].offsetHeight;
+        h += gap * 3;
+        el.style.maxHeight = h + 'px';
+      } else {
+        el.style.maxHeight = '';
+      }
+    });
   });
 }
 
