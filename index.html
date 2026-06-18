@@ -103,7 +103,10 @@
     .col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
     .col-title { font-size:12px; font-weight:500; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
     .col-count { font-size:11px; background:var(--bg-secondary); color:var(--text-tertiary); border-radius:10px; padding:1px 7px; }
-    .col-body { display:flex; flex-direction:column; gap:8px; min-height:180px; }
+    .col-body { display:flex; flex-direction:column; gap:8px; min-height:180px; max-height:calc(4 * 110px + 3 * 8px); overflow-y:auto; padding-right:2px; }
+    .col-body::-webkit-scrollbar { width:4px; }
+    .col-body::-webkit-scrollbar-track { background:transparent; }
+    .col-body::-webkit-scrollbar-thumb { background:var(--border-mid); border-radius:4px; }
 
     /* ── Task card ── */
     .task-card {
@@ -767,14 +770,33 @@ function renderStats() {
   document.getElementById('st-due').textContent = soon.length;
 }
 
+function sortTasks(arr) {
+  const PRIORITY_ORDER = { high: 0, mid: 1, low: 2 };
+  return [...arr].sort((a, b) => {
+    const aDays = a.due ? daysUntil(a.due) : null;
+    const bDays = b.due ? daysUntil(b.due) : null;
+    // 마감기한 없는 태스크는 맨 아래
+    if (aDays === null && bDays === null) {
+      return (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
+    }
+    if (aDays === null) return 1;
+    if (bDays === null) return -1;
+    // 마감기한 임박 순 (작을수록 앞)
+    if (aDays !== bDays) return aDays - bDays;
+    // 같은 날이면 우선순위 높음 먼저
+    return (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
+  });
+}
+
 function renderKanban() {
   const cols = { todo:[], inprogress:[], wait:[], done:[] };
   getFiltered().forEach(t => { if (cols[t.status]) cols[t.status].push(t); });
   Object.entries(cols).forEach(([status, arr]) => {
-    document.getElementById('cnt-' + status).textContent = arr.length;
+    const sorted = sortTasks(arr);
+    document.getElementById('cnt-' + status).textContent = sorted.length;
     const el = document.getElementById('col-' + status);
-    if (!arr.length) { el.innerHTML = '<div class="empty-col">없음</div>'; return; }
-    el.innerHTML = arr.map(t => {
+    if (!sorted.length) { el.innerHTML = '<div class="empty-col">없음</div>'; return; }
+    el.innerHTML = sorted.map(t => {
       const isDone   = t.status === 'done';
       const urgency  = cardUrgencyClass(t.due, isDone);
       const dueHtml  = cardDueHtml(t.due, isDone);
