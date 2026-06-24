@@ -363,6 +363,30 @@
 
     .add-project-row { display:flex; gap:8px; }
     .add-project-row input { flex:1; font-family:inherit; font-size:13px; padding:7px 10px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); }
+
+    /* ── Weather Widget ── */
+    .weather-widget {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: default;
+      user-select: none;
+    }
+    .weather-widget .weather-temp {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+    .weather-widget .weather-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
   </style>
 </head>
 <body>
@@ -388,6 +412,12 @@
     🗂️ Task Tracker
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
+    <!-- 날씨 위젯 -->
+    <div class="weather-widget" id="weather-widget" title="인천 현재 날씨">
+      <span id="weather-icon">☁️</span>
+      <span class="weather-temp" id="weather-temp">26°C</span>
+      <span class="weather-desc" id="weather-desc">흐림</span>
+    </div>
     <div class="tabs">
       <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)">📋 보드</button>
       <button class="tab" onclick="switchTab(&#39;list&#39;,this)">📄 목록</button>
@@ -1225,6 +1255,55 @@ function initSample() {
   ];
   persist();
 }
+
+/* ══════════════════════════════════════
+   WEATHER WIDGET (Open-Meteo — 무료, API 키 불필요)
+   위치: 인천 (위도 37.4563, 경도 126.7052)
+══════════════════════════════════════ */
+const WEATHER_CODES = {
+  0:'☀️',1:'🌤️',2:'⛅',3:'☁️',
+  45:'🌫️',48:'🌫️',
+  51:'🌦️',53:'🌦️',55:'🌧️',
+  61:'🌧️',63:'🌧️',65:'🌧️',
+  71:'❄️',73:'❄️',75:'❄️',77:'🌨️',
+  80:'🌦️',81:'🌧️',82:'⛈️',
+  85:'🌨️',86:'🌨️',
+  95:'⛈️',96:'⛈️',99:'⛈️'
+};
+const WEATHER_DESC = {
+  0:'맑음',1:'대체로 맑음',2:'구름 조금',3:'흐림',
+  45:'안개',48:'안개',
+  51:'이슬비',53:'이슬비',55:'이슬비',
+  61:'비',63:'비',65:'강한 비',
+  71:'눈',73:'눈',75:'강한 눈',77:'눈날림',
+  80:'소나기',81:'소나기',82:'강한 소나기',
+  85:'눈 소나기',86:'눈 소나기',
+  95:'뇌우',96:'우박 동반 뇌우',99:'우박 동반 뇌우'
+};
+
+async function fetchWeather() {
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast'
+      + '?latitude=37.4563&longitude=126.7052'
+      + '&current=temperature_2m,weathercode'
+      + '&timezone=Asia%2FSeoul';
+    const res  = await fetch(url);
+    const data = await res.json();
+    const temp = Math.round(data.current.temperature_2m);
+    const code = data.current.weathercode;
+    document.getElementById('weather-icon').textContent = WEATHER_CODES[code] ?? '🌡️';
+    document.getElementById('weather-temp').textContent = temp + '°C';
+    document.getElementById('weather-desc').textContent = WEATHER_DESC[code] ?? '날씨 정보';
+  } catch(e) {
+    document.getElementById('weather-icon').textContent = '🌡️';
+    document.getElementById('weather-temp').textContent = '--°C';
+    document.getElementById('weather-desc').textContent = '연결 실패';
+  }
+}
+
+// 페이지 로드 시 바로 실행, 이후 30분마다 자동 갱신
+fetchWeather();
+setInterval(fetchWeather, 30 * 60 * 1000);
 </script>
 </div><!-- /main-app -->
 
