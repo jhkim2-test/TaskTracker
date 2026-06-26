@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/JHKIM2/Downloads/index.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -314,6 +313,25 @@
 
     .two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
+    /* ── Rich editor ── */
+    .editor-tool-btn {
+      font-size:12px; padding:3px 8px; border-radius:5px;
+      border:0.5px solid transparent; background:transparent;
+      color:var(--text-secondary); cursor:pointer; font-family:inherit;
+      transition:all 0.1s; line-height:1.4; display:flex; align-items:center; gap:3px;
+    }
+    .editor-tool-btn:hover { background:var(--bg-primary); border-color:var(--border-mid); color:var(--text-primary); }
+    #e-note-editor:empty:before { content:attr(data-placeholder); color:var(--text-tertiary); pointer-events:none; }
+    #e-note-editor img { max-width:100%; border-radius:6px; margin:4px 0; display:block; cursor:pointer; }
+    #e-note-editor img:hover { outline:2px solid #378ADD; }
+    #e-note-editor ol, #e-note-editor ul { padding-left:1.4em; }
+    #e-note-editor b, #e-note-editor strong { font-weight:600; }
+
+    /* ── Image lightbox ── */
+    #img-lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:9999; align-items:center; justify-content:center; cursor:zoom-out; }
+    #img-lightbox.open { display:flex; }
+    #img-lightbox img { max-width:90vw; max-height:88vh; border-radius:8px; object-fit:contain; }
+
     .modal-footer { display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem; }
     .modal-footer-right { display:flex; gap:8px; }
 
@@ -603,7 +621,23 @@
         </div>
         <div class="field field-note" style="flex:1;display:flex;flex-direction:column;">
           <label>업무내용</label>
-          <textarea id="e-note" placeholder="업무 내용을 입력하세요..." style="flex:1;min-height:180px;resize:vertical;"></textarea>
+          <!-- 에디터 툴바 -->
+          <div id="editor-toolbar" style="display:flex;align-items:center;gap:3px;padding:5px 8px;border:0.5px solid var(--border-mid);border-bottom:none;border-radius:var(--radius-md) var(--radius-md) 0 0;background:var(--bg-secondary);flex-wrap:wrap;">
+            <button type="button" class="editor-tool-btn" onclick="editorCmd('bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
+            <button type="button" class="editor-tool-btn" onclick="editorCmd('insertOrderedList')" title="번호 목록">1.</button>
+            <button type="button" class="editor-tool-btn" onclick="editorCmd('insertUnorderedList')" title="글머리 기호">•</button>
+            <div style="width:0.5px;height:18px;background:var(--border-mid);margin:0 3px;"></div>
+            <label class="editor-tool-btn" style="cursor:pointer;" title="이미지 첨부">
+              🖼 <span style="font-size:11px;">이미지</span>
+              <input type="file" id="e-image-input" accept="image/*" multiple style="display:none;" onchange="insertImages(this)">
+            </label>
+          </div>
+          <!-- contenteditable 에디터 -->
+          <div id="e-note-editor"
+            contenteditable="true"
+            style="flex:1;min-height:180px;padding:10px 12px;border:0.5px solid var(--border-mid);border-radius:0 0 var(--radius-md) var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-family:inherit;font-size:13px;line-height:1.7;overflow-y:auto;outline:none;"
+            data-placeholder="업무 내용을 입력하세요..."
+          ></div>
         </div>
 
         <div class="modal-footer">
@@ -672,6 +706,11 @@
     </div>
     <textarea id="memo-textarea" placeholder="여기에 자유롭게 메모하세요..." style="flex:1;width:100%;font-family:inherit;font-size:14px;padding:10px 12px;border-radius:var(--radius-md);border:0.5px solid var(--border-mid);background:var(--bg-secondary);color:var(--text-primary);resize:none;line-height:1.7;" oninput="saveMemo()"></textarea>
   </div>
+</div>
+
+<!-- ── Image lightbox ── -->
+<div id="img-lightbox" onclick="closeLightbox()">
+  <img id="img-lightbox-img" src="" alt="이미지 크게보기">
 </div>
 
 <script>
@@ -1073,7 +1112,11 @@ function openEditModal(id) {
   /* main fields */
   document.getElementById('e-title').value = t.title;
   document.getElementById('e-due').value   = t.due || '';
-  document.getElementById('e-note').value  = t.note || '';
+  /* 리치 에디터에 저장된 HTML 로드 */
+  const editor = document.getElementById('e-note-editor');
+  editor.innerHTML = t.note || '';
+  /* 에디터 내 이미지 클릭 → 라이트박스 */
+  bindEditorImageClicks();
 
   /* panel fields */
   document.getElementById('e-project').value  = t.project || '';
@@ -1132,7 +1175,7 @@ function saveEditTask() {
     level:     getSelectedLevel('e'),
     due:       document.getElementById('e-due').value,
     status:    eStatusVal,
-    note:      document.getElementById('e-note').value,
+    note:      document.getElementById('e-note-editor').innerHTML,
     createdAt: orig.createdAt || Date.now()
   };
   const idx = tasks.findIndex(t => t.id === editId);
@@ -1186,7 +1229,7 @@ function downloadExcel() {
     t.level ? 'Lv.' + t.level : '',
     t.due || '',
     STATUS_LABELS[t.status] || t.status,
-    (t.note || '').replace(/\n/g,' ')
+    (t.note || '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()
   ]);
 
   /* Build CSV with BOM for Excel Korean support */
@@ -1204,6 +1247,63 @@ function downloadExcel() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+/* ══════════════════════════════════════
+   RICH EDITOR
+══════════════════════════════════════ */
+function editorCmd(cmd) {
+  document.getElementById('e-note-editor').focus();
+  document.execCommand(cmd, false, null);
+}
+
+function insertImages(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const editor = document.getElementById('e-note-editor');
+  editor.focus();
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.maxWidth = '100%';
+      img.style.borderRadius = '6px';
+      img.style.margin = '4px 0';
+      img.style.display = 'block';
+      img.style.cursor = 'pointer';
+      img.onclick = () => openLightbox(img.src);
+      /* 커서 위치에 삽입, 없으면 맨 뒤 */
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(img);
+        range.collapse(false);
+      } else {
+        editor.appendChild(img);
+      }
+      bindEditorImageClicks();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function bindEditorImageClicks() {
+  const editor = document.getElementById('e-note-editor');
+  editor.querySelectorAll('img').forEach(img => {
+    img.onclick = () => openLightbox(img.src);
+  });
+}
+
+function openLightbox(src) {
+  document.getElementById('img-lightbox-img').src = src;
+  document.getElementById('img-lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('img-lightbox').classList.remove('open');
+  document.getElementById('img-lightbox-img').src = '';
 }
 
 /* ══════════════════════════════════════
