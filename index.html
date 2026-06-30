@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- saved from url=(0044)file:///C:/Users/JHKIM2/Downloads/index.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -432,9 +433,9 @@
   <div style="display:flex;align-items:center;gap:10px;">
     <!-- 날씨 위젯 -->
     <div class="weather-widget" id="weather-widget" title="인천 현재 날씨">
-      <span id="weather-icon">☁️</span>
-      <span class="weather-temp" id="weather-temp">26°C</span>
-      <span class="weather-desc" id="weather-desc">흐림</span>
+      <span id="weather-icon">🌤️</span>
+      <span class="weather-temp" id="weather-temp">21°C</span>
+      <span class="weather-desc" id="weather-desc">대체로 맑음</span>
     </div>
     <div class="tabs">
       <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)">📋 보드</button>
@@ -623,21 +624,17 @@
           <label>업무내용</label>
           <!-- 에디터 툴바 -->
           <div id="editor-toolbar" style="display:flex;align-items:center;gap:3px;padding:5px 8px;border:0.5px solid var(--border-mid);border-bottom:none;border-radius:var(--radius-md) var(--radius-md) 0 0;background:var(--bg-secondary);flex-wrap:wrap;">
-            <button type="button" class="editor-tool-btn" onclick="editorCmd('bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
-            <button type="button" class="editor-tool-btn" onclick="editorCmd('insertOrderedList')" title="번호 목록">1.</button>
-            <button type="button" class="editor-tool-btn" onclick="editorCmd('insertUnorderedList')" title="글머리 기호">•</button>
+            <button type="button" class="editor-tool-btn" onclick="editorCmd(&#39;bold&#39;)" title="굵게 (Ctrl+B)"><b>B</b></button>
+            <button type="button" class="editor-tool-btn" onclick="editorCmd(&#39;insertOrderedList&#39;)" title="번호 목록">1.</button>
+            <button type="button" class="editor-tool-btn" onclick="editorCmd(&#39;insertUnorderedList&#39;)" title="글머리 기호">•</button>
             <div style="width:0.5px;height:18px;background:var(--border-mid);margin:0 3px;"></div>
             <label class="editor-tool-btn" style="cursor:pointer;" title="이미지 첨부">
               🖼 <span style="font-size:11px;">이미지</span>
-              <input type="file" id="e-image-input" accept="image/*" multiple style="display:none;" onchange="insertImages(this)">
+              <input type="file" id="e-image-input" accept="image/*" multiple="" style="display:none;" onchange="insertImages(this)">
             </label>
           </div>
           <!-- contenteditable 에디터 -->
-          <div id="e-note-editor"
-            contenteditable="true"
-            style="flex:1;min-height:180px;padding:10px 12px;border:0.5px solid var(--border-mid);border-radius:0 0 var(--radius-md) var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-family:inherit;font-size:13px;line-height:1.7;overflow-y:auto;outline:none;"
-            data-placeholder="업무 내용을 입력하세요..."
-          ></div>
+          <div id="e-note-editor" contenteditable="true" style="flex:1;min-height:180px;padding:10px 12px;border:0.5px solid var(--border-mid);border-radius:0 0 var(--radius-md) var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-family:inherit;font-size:13px;line-height:1.7;overflow-y:auto;outline:none;" data-placeholder="업무 내용을 입력하세요..."></div>
         </div>
 
         <div class="modal-footer">
@@ -710,7 +707,7 @@
 
 <!-- ── Image lightbox ── -->
 <div id="img-lightbox" onclick="closeLightbox()">
-  <img id="img-lightbox-img" src="" alt="이미지 크게보기">
+  <img id="img-lightbox-img" src="file:///C:/Users/JHKIM2/Downloads/index.html" alt="이미지 크게보기">
 </div>
 
 <script>
@@ -1135,7 +1132,7 @@ function openEditModal(id) {
 }
 
 function closeEditModal()  { document.getElementById('edit-modal-bg').classList.remove('open'); }
-function closeEditModalBg(e) { if (e.target === document.getElementById('edit-modal-bg')) closeEditModal(); }
+function closeEditModalBg(e) { /* 수정 모달은 외부 클릭으로 닫히지 않음 */ }
 
 /* ══════════════════════════════════════
    MEMO MODAL
