@@ -83,35 +83,58 @@
     .filter-bar { display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap; align-items:center; }
     .filter-bar input, .filter-bar select { font-family:inherit; font-size:13px; padding:6px 10px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); }
     .filter-bar input { flex:1; min-width:160px; }
+    #filter-goal { max-width:200px; }
 
     /* ── View toggle ── */
     .view { display:none; }
     .view.active { display:block; }
 
-    /* ── Kanban board ── */
-    .kanban { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; align-items:stretch; }
-    @media (max-width:768px) { .kanban { grid-template-columns:repeat(2,1fr); } }
-    @media (max-width:480px) { .kanban { grid-template-columns:1fr; } }
-
-    .kanban > div {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-mid);
-      border-radius: var(--radius-lg);
-      padding: 12px 10px 14px;
-      display: flex;
-      flex-direction: column;
+    /* ── Board (프로젝트 → 과업 → 세부업무) ── */
+    .board-crumbs { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:10px; font-size:13px; color:var(--text-tertiary); }
+    .board-crumbs:empty { display:none; }
+    .crumb { font-family:inherit; font-size:13px; padding:2px 4px; border:none; background:none; color:var(--text-secondary); cursor:pointer; border-radius:4px; }
+    .crumb:hover { background:var(--bg-secondary); color:var(--text-primary); }
+    .crumb-current { padding:2px 4px; font-weight:500; color:var(--text-primary); }
+    .board-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr)); gap:10px; }
+    .board-grid > .empty-col { grid-column:1 / -1; }
+    .board-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.4fr); gap:10px; height:calc(100vh - 240px); min-height:380px; }
+    .board-col { display:flex; flex-direction:column; min-height:0; background:var(--bg-secondary); border:0.5px solid var(--border-light); border-radius:var(--radius-md); overflow:hidden; }
+    .board-col-head { display:flex; align-items:center; gap:6px; padding:9px 12px; font-size:13px; font-weight:500; color:var(--text-secondary); }
+    .board-col-count { font-size:12px; font-weight:400; color:var(--text-tertiary); }
+    .board-col-body { flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:2px 8px 8px; }
+    @media (max-width:900px) {
+      .board-columns { grid-template-columns:minmax(0,1fr); height:auto; }
+      .board-col-body { overflow-y:visible; }
     }
-
-    .col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-shrink:0; }
-    .col-title { font-size:12px; font-weight:500; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; }
-    .col-count { font-size:11px; background:var(--bg-secondary); color:var(--text-tertiary); border-radius:10px; padding:1px 7px; }
-    .col-body { display:flex; flex-direction:column; gap:8px; max-height:560px; overflow-y:auto; padding-right:4px; }
-    .col-body::-webkit-scrollbar { width:4px; }
-    .col-body::-webkit-scrollbar-track { background:transparent; }
-    .col-body::-webkit-scrollbar-thumb { background:var(--border-mid); border-radius:4px; }
+    .board-card { position:relative; display:flex; flex-direction:column; gap:6px; padding:12px 12px 10px; flex-shrink:0; background:var(--bg-primary); border:0.5px solid var(--border-light); border-radius:var(--radius-md); cursor:pointer; transition:border-color 0.15s; }
+    .board-card:hover { border-color:var(--border-mid); }
+    .board-card.selected { border-color:#185FA5; box-shadow:inset 0 0 0 1px #185FA5; }
+    .dragging { opacity:0.4; }
+    .board-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; padding-right:32px; }
+    .board-card-title { flex:1; min-width:0; font-size:15.5px; font-weight:500; line-height:1.4; color:var(--text-primary); overflow-wrap:anywhere; }
+    .board-card-sub { font-size:12px; color:var(--text-tertiary); }
+    /* 평소에는 숨겨 두고 카드 오른쪽 위 모서리에 커서를 올릴 때만 보인다 */
+    .card-tools { position:absolute; top:3px; right:3px; display:flex; gap:2px; opacity:0; transition:opacity 0.1s; }
+    .card-tools:hover, .card-tools:has(:focus-visible) { opacity:1; }
+    @media (hover:none) { .card-tools { opacity:0.7; } }
+    .card-tool { width:20px; height:20px; padding:0; display:flex; align-items:center; justify-content:center; font-family:inherit; font-size:13px; line-height:1; color:var(--text-tertiary); background:none; border:none; cursor:pointer; }
+    .card-tool:hover { color:var(--text-primary); }
+    .card-tool-x:hover { color:#A32D2D; }
+    .board-progress { height:7px; margin:2px 32px 2px 0; border-radius:4px; overflow:hidden; background:var(--bg-tertiary); }
+    .board-progress span { display:block; height:100%; border-radius:4px; background:#2E7CD6; }
+    .board-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:20px; font-size:12px; color:var(--text-secondary); }
+    .board-card.is-done .board-card-title { text-decoration:line-through; color:var(--text-tertiary); }
+    .board-add-card { flex-shrink:0; margin-top:6px; min-height:64px; display:flex; align-items:center; justify-content:center; font-family:inherit; font-size:24px; font-weight:300; color:var(--text-tertiary); background:transparent; border:1px dashed var(--border-mid); border-radius:var(--radius-md); cursor:pointer; transition:background 0.1s, color 0.1s; }
+    .board-add-card:hover { color:var(--text-primary); background:var(--bg-primary); }
+    .board-card.board-form { flex-direction:row; flex-wrap:wrap; align-items:center; padding:10px 12px; cursor:default; }
+    .board-col-body > .board-form:last-child { margin-top:6px; }
+    .board-form input { flex:1; min-width:0; font-family:inherit; font-size:13px; padding:5px 8px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); }
+    .board-form .btn { flex-shrink:0; white-space:nowrap; }
+    .board-form-error { flex-basis:100%; font-size:12px; color:#A32D2D; }
 
     /* ── Task card ── */
     .task-card {
+      position: relative;
       background: var(--bg-primary);
       border: 0.5px solid var(--border-light);
       border-radius: var(--radius-md);
@@ -131,10 +154,22 @@
     .task-card.urgent-day { background:#FFD0D0; border-color:#B81C1C; border-width:2px; }
 
     /* Card inner layout */
-    .task-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
-    .task-card-badges { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
-    .task-title { font-size:15.5px; font-weight:500; color:var(--text-primary); line-height:1.4; }
-    .task-bottom { display:flex; align-items:center; justify-content:flex-start; min-height:0; }
+    .task-card-top { display:flex; align-items:center; gap:8px; padding-right:14px; }
+    .check-btn { width:20px; height:20px; flex-shrink:0; padding:0; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--border-mid); border-radius:50%; background:var(--bg-primary); color:#fff; font-size:12px; line-height:1; cursor:pointer; }
+    .check-btn:hover { border-color:#639922; }
+    .task-card.is-done { background:var(--bg-primary); }
+    .task-card.is-done .check-btn { background:#639922; border-color:#639922; }
+    .task-card.is-done .task-title { text-decoration:line-through; color:var(--text-tertiary); }
+    .status-select { font-family:inherit; font-size:11px; font-weight:500; padding:2px 4px; border-radius:10px; border:0.5px solid var(--border-mid); cursor:pointer; }
+    /* 칸 너비를 고정해 카드끼리 마감·우선순위·상태가 세로로 맞는다 */
+    .task-card-meta { display:grid; grid-template-columns:48px 42px 74px; align-items:center; justify-items:center; gap:6px; flex-shrink:0; }
+    .task-card-meta .status-select { width:100%; }
+    .task-title { flex:1; min-width:0; font-size:15px; font-weight:500; color:var(--text-primary); line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    @media (max-width:500px) {
+      .task-card-top { flex-wrap:wrap; }
+      .task-title { flex-basis:calc(100% - 28px); }
+      .task-card-meta { margin-left:auto; }
+    }
 
     /* ── Priority badges ── */
     .priority { font-size:11.9px; padding:2px 7px; border-radius:10px; font-weight:500; white-space:nowrap; }
@@ -142,23 +177,12 @@
     .p-mid  { background:#FAEEDA; color:#854F0B; }
     .p-low  { background:#EAF3DE; color:#3B6D11; }
 
-    /* ── Level badge — 색상별 구분 (1=초록, 2=파랑, 3=노랑, 4=빨강, 5=보라) ── */
-    .lv-badge { font-size:10.8px; padding:2px 6px; border-radius:10px; font-weight:500; white-space:nowrap; }
-    .lv-1 { background:#EAF3DE; color:#3B6D11; }
-    .lv-2 { background:#E6F1FB; color:#185FA5; }
-    .lv-3 { background:#FFFACC; color:#7A6200; }
-    .lv-4 { background:#FCEBEB; color:#A32D2D; }
-    .lv-5 { background:#F3E8FB; color:#6B21A8; }
-
     /* ── Due label ── */
     .due-label { font-size:11px; color:var(--text-tertiary); }
     .due-label.overdue { display:inline-block; background:#C0392B; color:#fff; font-weight:700; padding:2px 7px; border-radius:10px; }
     .due-label.d-day   { display:inline-block; background:#C0392B; color:#fff; font-weight:700; padding:2px 7px; border-radius:10px; }
     .due-label.d3      { display:inline-block; background:#E74C3C; color:#fff; font-weight:600; padding:2px 7px; border-radius:10px; }
     .due-label.d7      { display:inline-block; background:#E67E22; color:#fff; font-weight:500; padding:2px 7px; border-radius:10px; }
-
-    /* ── Avatar ── */
-    .avatar { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; flex-shrink:0; }
 
     /* ── List table ── */
     .list-table { width:100%; border-collapse:collapse; background:var(--bg-primary); border-radius:var(--radius-lg); overflow:hidden; border:0.5px solid var(--border-light); }
@@ -168,7 +192,6 @@
     .list-table tbody tr:hover td { background:var(--bg-secondary); }
 
     /* ── Status badge ── */
-    .status-badge { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500; white-space:nowrap; }
     .s-todo       { background:var(--bg-secondary); color:var(--text-secondary); }
     .s-inprogress { background:#E6F1FB; color:#185FA5; }
     .s-wait       { background:#FAEEDA; color:#854F0B; }
@@ -297,7 +320,7 @@
     .field-note { flex:1; display:flex; flex-direction:column; }
     .field-note textarea { flex:1; min-height:240px; }
 
-    /* Button group (priority / level) */
+    /* Button group (priority) */
     .btn-group-row { display:flex; gap:5px; flex-wrap:wrap; }
     .choice-btn {
       font-size:12px; padding:4px 11px; border-radius:20px;
@@ -310,7 +333,6 @@
     .choice-btn.sel-high { background:#FCEBEB; color:#A32D2D; border-color:#F7C1C1; }
     .choice-btn.sel-mid  { background:#FAEEDA; color:#854F0B; border-color:#FAC775; }
     .choice-btn.sel-low  { background:#EAF3DE; color:#3B6D11; border-color:#C0DD97; }
-    .choice-btn.sel-lv   { background:#E6F1FB; color:#185FA5; border-color:#B5D4F4; }
 
     .two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
@@ -342,7 +364,6 @@
     /* ══════════════════════════════════════
        PROJECT VIEW
     ══════════════════════════════════════ */
-    .section-title { font-size:13px; font-weight:500; color:var(--text-secondary); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.05em; }
     .project-list { display:flex; flex-direction:column; gap:8px; margin-bottom:1.5rem; }
 
     .project-item {
@@ -360,7 +381,7 @@
     .project-item-header:hover { background:var(--bg-secondary); }
     .project-item-left { display:flex; align-items:center; gap:8px; }
     .project-chevron { font-size:11px; color:var(--text-tertiary); transition:transform 0.18s; display:inline-block; }
-    .project-item.expanded .project-chevron { transform:rotate(90deg); }
+    .project-item.expanded > .project-item-header .project-chevron { transform:rotate(90deg); }
     .project-item-name { font-size:14px; font-weight:500; color:var(--text-primary); }
     .project-item-count { font-size:12px; color:var(--text-tertiary); }
     .project-item-actions { display:flex; align-items:center; gap:6px; }
@@ -380,8 +401,27 @@
     .project-task-title { flex:1; font-weight:500; color:var(--text-primary); }
     .project-task-meta { display:flex; align-items:center; gap:6px; }
 
-    .add-project-row { display:flex; gap:8px; }
-    .add-project-row input { flex:1; font-family:inherit; font-size:13px; padding:7px 10px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); }
+    /* 과업 (프로젝트와 세부업무 사이) */
+    .goal-row { display:flex; align-items:center; gap:8px; padding:8px 14px; background:var(--bg-secondary); border-bottom:0.5px solid var(--border-light); font-size:13px; }
+    .goal-row-toggle { cursor:pointer; user-select:none; }
+    .goal-title { flex:1; min-width:0; font-weight:500; color:var(--text-primary); }
+    .goal-title.ungrouped { font-weight:400; color:var(--text-tertiary); }
+    .goal-progress { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
+    .goal-progress.all-done { color:#3B6D11; font-weight:500; }
+    .goal-tasks .project-task-row { padding-left:28px; }
+    .task-path { font-size:11px; color:var(--text-tertiary); margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* 완료 화면 */
+    .done-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+    .done-summary { font-size:13px; color:var(--text-secondary); }
+    .done-header select { font-family:inherit; font-size:12px; padding:4px 8px; border-radius:var(--radius-md); border:0.5px solid var(--border-mid); background:var(--bg-primary); color:var(--text-primary); }
+    .done-goal .goal-tasks { display:none; }
+    .done-goal.expanded .goal-tasks { display:block; }
+    .done-goal.expanded > .goal-row .project-chevron { transform:rotate(90deg); }
+    .done-date { font-size:12px; color:var(--text-tertiary); white-space:nowrap; min-width:72px; text-align:right; }
+    #done-list .project-task-title { text-decoration:line-through; font-weight:400; color:var(--text-secondary); }
+    .stat-link { cursor:pointer; }
+    .stat-link:hover { border-color:var(--border-mid); }
 
     /* ── Weather Widget ── */
     .weather-widget {
@@ -469,12 +509,12 @@
       <span class="save-dot"></span><span id="save-chip-label">자동 저장 꺼짐</span>
     </button>
     <div class="tabs">
-      <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)">📋 보드</button>
+      <button class="tab active" onclick="switchTab(&#39;board&#39;,this)">📋 보드</button>
       <button class="tab" onclick="switchTab(&#39;list&#39;,this)">📄 목록</button>
-      <button class="tab" onclick="switchTab(&#39;projects&#39;,this)">📁 프로젝트</button>
+      <button class="tab" id="tab-done" onclick="switchTab(&#39;done&#39;,this)">✅ 완료</button>
       <button class="tab" onclick="openMemoModal()">📝 메모장</button>
     </div>
-    <button class="btn btn-primary" onclick="openCreateModal()">＋ 태스크</button>
+    <button class="btn btn-primary" onclick="openCreateModal()">＋ 세부업무</button>
   </div>
 </div>
 
@@ -482,17 +522,17 @@
 
   <!-- Stats -->
   <div class="summary-row">
-    <div class="stat-card"><div class="stat-label">전체 태스크</div><div class="stat-val" id="st-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">전체 세부업무</div><div class="stat-val" id="st-total">0</div></div>
     <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-val" id="st-inprogress" style="color:#185FA5;">0</div></div>
     <div class="stat-card"><div class="stat-label">기한 임박 (3일)</div><div class="stat-val" id="st-due" style="color:#854F0B;">0</div></div>
-    <div class="stat-card"><div class="stat-label">완료</div><div class="stat-val" id="st-done" style="color:#3B6D11;">0</div></div>
+    <div class="stat-card stat-link" title="완료 화면으로 이동" onclick="switchTab(&#39;done&#39;,document.getElementById(&#39;tab-done&#39;))"><div class="stat-label">완료</div><div class="stat-val" id="st-done" style="color:#3B6D11;">0</div></div>
   </div>
 
   <!-- Filter bar -->
   <div class="filter-bar">
-    <input type="text" id="search-input" placeholder="태스크 검색..." oninput="renderAll()">
+    <input type="text" id="search-input" placeholder="세부업무 검색..." oninput="renderAll()">
     <select id="filter-project" onchange="renderAll()"><option value="">모든 프로젝트</option></select>
-    <select id="filter-assignee" onchange="renderAll()"><option value="">모든 담당자</option></select>
+    <select id="filter-goal" onchange="renderAll()"><option value="">모든 과업</option></select>
     <select id="filter-priority" onchange="renderAll()">
       <option value="">모든 우선순위</option>
       <option value="high">높음</option>
@@ -502,25 +542,9 @@
   </div>
 
   <!-- ── Board view ── -->
-  <div id="view-kanban" class="view active">
-    <div class="kanban">
-      <div>
-        <div class="col-header"><span class="col-title">할 일</span><span class="col-count" id="cnt-todo">0</span></div>
-        <div class="col-body" id="col-todo"></div>
-      </div>
-      <div>
-        <div class="col-header"><span class="col-title">진행 중</span><span class="col-count" id="cnt-inprogress">0</span></div>
-        <div class="col-body" id="col-inprogress"></div>
-      </div>
-      <div>
-        <div class="col-header"><span class="col-title">대기</span><span class="col-count" id="cnt-wait">0</span></div>
-        <div class="col-body" id="col-wait"></div>
-      </div>
-      <div>
-        <div class="col-header"><span class="col-title">완료</span><span class="col-count" id="cnt-done">0</span></div>
-        <div class="col-body" id="col-done"></div>
-      </div>
-    </div>
+  <div id="view-board" class="view active">
+    <div class="board-crumbs" id="board-crumbs"></div>
+    <div id="board-body"></div>
   </div>
 
   <!-- ── List view ── -->
@@ -531,11 +555,10 @@
     <table class="list-table">
       <thead>
         <tr>
-          <th>태스크</th>
+          <th>세부업무</th>
           <th>프로젝트</th>
-          <th>담당자</th>
+          <th>과업</th>
           <th>우선순위</th>
-          <th>난이도</th>
           <th>마감일</th>
           <th>상태</th>
           <th></th>
@@ -545,48 +568,46 @@
     </table>
   </div>
 
-  <!-- ── Projects view ── -->
-  <div id="view-projects" class="view">
-    <div class="section-title">프로젝트 목록</div>
-    <div class="project-list" id="project-list"></div>
-    <div class="section-title">새 프로젝트 추가</div>
-    <div class="add-project-row">
-      <input type="text" id="new-project-input" placeholder="프로젝트 이름 입력" onkeydown="if(event.key===&#39;Enter&#39;)addProject()">
-      <button class="btn btn-primary" onclick="addProject()">＋ 추가</button>
+  <!-- ── Done view ── -->
+  <div id="view-done" class="view">
+    <div class="done-header">
+      <div class="done-summary" id="done-summary"></div>
+      <select id="done-period" onchange="renderDone()">
+        <option value="7">최근 7일</option>
+        <option value="30" selected>최근 30일</option>
+        <option value="90">최근 90일</option>
+        <option value="0">전체 기간</option>
+      </select>
     </div>
+    <div class="project-list" id="done-list"></div>
   </div>
 
 </div><!-- /container -->
 
 
 <!-- ══════════════════════════════════════
-     CREATE MODAL  (+태스크 버튼)
+     CREATE MODAL  (+세부업무 버튼)
 ══════════════════════════════════════ -->
 <div class="modal-bg" id="create-modal-bg" onclick="closeCreateModalBg(event)">
   <div class="modal">
     <div class="modal-header">
-      <h2>새 태스크</h2>
+      <h2>새 세부업무</h2>
       <div class="modal-header-actions">
         <button class="status-pill s-todo" id="c-status-pill" onclick="cycleCreateStatus()">할 일</button>
       </div>
     </div>
 
     <div class="field">
-      <label>태스크 이름 *</label>
-      <input type="text" id="c-title" placeholder="태스크 이름 입력">
+      <label>세부업무 이름 *</label>
+      <input type="text" id="c-title" placeholder="세부업무 이름 입력">
     </div>
     <div class="field">
       <label>프로젝트</label>
-      <select id="c-project"><option value="">선택 안함</option></select>
+      <select id="c-project" onchange="updateGoalSelect(&#39;c&#39;)"><option value="">선택 안함</option></select>
     </div>
     <div class="field">
-      <label>담당자</label>
-      <select id="c-assignee">
-        <option value="">없음</option>
-        <option value="나">나</option>
-        <option value="팀원 A">팀원 A</option>
-        <option value="팀원 B">팀원 B</option>
-      </select>
+      <label>과업</label>
+      <select id="c-goal" onchange="onGoalSelect(&#39;c&#39;)"></select>
     </div>
     <div class="field">
       <label>마감일</label>
@@ -598,16 +619,6 @@
         <button class="choice-btn" data-val="high" onclick="selectPriority(&#39;c&#39;,this)">높음</button>
         <button class="choice-btn sel-mid" data-val="mid" onclick="selectPriority(&#39;c&#39;,this)">보통</button>
         <button class="choice-btn" data-val="low" onclick="selectPriority(&#39;c&#39;,this)">낮음</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>업무난이도</label>
-      <div class="btn-group-row" id="c-level-group">
-        <button class="choice-btn sel-lv" data-val="1" onclick="selectLevel(&#39;c&#39;,this)">Lv.1</button>
-        <button class="choice-btn" data-val="2" onclick="selectLevel(&#39;c&#39;,this)">Lv.2</button>
-        <button class="choice-btn" data-val="3" onclick="selectLevel(&#39;c&#39;,this)">Lv.3</button>
-        <button class="choice-btn" data-val="4" onclick="selectLevel(&#39;c&#39;,this)">Lv.4</button>
-        <button class="choice-btn" data-val="5" onclick="selectLevel(&#39;c&#39;,this)">Lv.5</button>
       </div>
     </div>
 
@@ -631,7 +642,7 @@
     <!-- Header -->
     <div style="padding:1.25rem 1.5rem 0; border-bottom:0.5px solid var(--border-light); padding-bottom:1rem;">
       <div class="modal-header" style="margin-bottom:0;">
-        <h2 id="e-title-display" style="font-size:15px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;">태스크 수정</h2>
+        <h2 id="e-title-display" style="font-size:15px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;">세부업무 수정</h2>
         <div class="modal-header-actions">
           <button class="status-pill s-todo" id="e-status-pill" onclick="cycleEditStatus()">할 일</button>
           <button class="gear-btn" id="gear-btn" onclick="toggleSettingsPanel()" title="상세 설정">⚙️</button>
@@ -644,8 +655,8 @@
       <!-- Main pane -->
       <div class="modal-edit-main">
         <div class="field">
-          <label>태스크 이름</label>
-          <input type="text" id="e-title" placeholder="태스크 이름 입력">
+          <label>세부업무 이름</label>
+          <input type="text" id="e-title" placeholder="세부업무 이름 입력">
         </div>
         <div class="field">
           <label>마감일</label>
@@ -684,16 +695,11 @@
 
           <div class="field">
             <label>프로젝트</label>
-            <select id="e-project"><option value="">선택 안함</option></select>
+            <select id="e-project" onchange="updateGoalSelect(&#39;e&#39;)"><option value="">선택 안함</option></select>
           </div>
           <div class="field">
-            <label>담당자</label>
-            <select id="e-assignee">
-              <option value="">없음</option>
-              <option value="나">나</option>
-              <option value="팀원 A">팀원 A</option>
-              <option value="팀원 B">팀원 B</option>
-            </select>
+            <label>과업</label>
+            <select id="e-goal" onchange="onGoalSelect(&#39;e&#39;)"></select>
           </div>
           <div class="field">
             <div class="panel-label">우선순위</div>
@@ -701,16 +707,6 @@
               <button class="choice-btn" data-val="high" onclick="selectPriority(&#39;e&#39;,this)">높음</button>
               <button class="choice-btn sel-mid" data-val="mid" onclick="selectPriority(&#39;e&#39;,this)">보통</button>
               <button class="choice-btn" data-val="low" onclick="selectPriority(&#39;e&#39;,this)">낮음</button>
-            </div>
-          </div>
-          <div class="field" style="margin-top:10px;">
-            <div class="panel-label">업무난이도</div>
-            <div class="btn-group-row" id="e-level-group">
-              <button class="choice-btn sel-lv" data-val="1" onclick="selectLevel(&#39;e&#39;,this)">Lv.1</button>
-              <button class="choice-btn" data-val="2" onclick="selectLevel(&#39;e&#39;,this)">Lv.2</button>
-              <button class="choice-btn" data-val="3" onclick="selectLevel(&#39;e&#39;,this)">Lv.3</button>
-              <button class="choice-btn" data-val="4" onclick="selectLevel(&#39;e&#39;,this)">Lv.4</button>
-              <button class="choice-btn" data-val="5" onclick="selectLevel(&#39;e&#39;,this)">Lv.5</button>
             </div>
           </div>
         </div>
@@ -754,28 +750,38 @@
 /* ══════════════════════════════════════
    DATA & PERSISTENCE
 ══════════════════════════════════════ */
-const MEMBER_COLORS   = { '나':{ bg:'#E6F1FB', text:'#185FA5' }, '팀원 A':{ bg:'#EAF3DE', text:'#3B6D11' }, '팀원 B':{ bg:'#FAEEDA', text:'#854F0B' } };
-const MEMBER_INITIALS = { '나':'나', '팀원 A':'A', '팀원 B':'B' };
 const PRI_ORDER       = { high:0, mid:1, low:2 };
 const STATUS_CYCLE    = ['todo','inprogress','wait','done'];
 const STATUS_LABELS   = { todo:'할 일', inprogress:'진행 중', wait:'대기', done:'완료' };
 const STATUS_CLASS    = { todo:'s-todo', inprogress:'s-inprogress', wait:'s-wait', done:'s-done' };
 
-let tasks = [], projects = [], editId = null;
+let tasks = [], projects = [], goals = [], editId = null;
 let cStatusVal = 'todo', eStatusVal = 'todo';
+const NO_PROJECT = '__none__', UNGROUPED = '__ungrouped__';
+let boardPath = { project:null, goal:null };
+let boardForm = null;   /* 입력 중인 카드 { kind:'project'|'goal'|'task'|'rename', goalId, value, error } */
+const doneToggled = new Set();   /* 기본 펼침 상태와 다르게 바꾼 완료 화면 항목 */
+const NEW_GOAL = '__new__';
 
 function load() {
   try { tasks    = JSON.parse(localStorage.getItem('ws_tasks')    || '[]'); } catch(e) { tasks = []; }
   try { projects = JSON.parse(localStorage.getItem('ws_projects') || '["웹 리디자인","앱 개발","마케팅","기타"]'); } catch(e) { projects = []; }
+  try { goals    = JSON.parse(localStorage.getItem('ws_goals')    || '[]'); } catch(e) { goals = []; }
   /* migrate old 'review' → 'wait' */
   tasks.forEach(t => { if (t.status === 'review') t.status = 'wait'; });
 }
 function persist() {
   localStorage.setItem('ws_tasks',    JSON.stringify(tasks));
   localStorage.setItem('ws_projects', JSON.stringify(projects));
+  localStorage.setItem('ws_goals',    JSON.stringify(goals));
   fsScheduleSave();
 }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function goalOf(t)    { return goals.find(g => g.id === t.goalId) || null; }
+function goalTitle(t) { const g = goalOf(t); return g ? g.title : ''; }
+function progressOf(list) { return { total:list.length, done:list.filter(t => t.status === 'done').length }; }
+function goalProgress(id) { return progressOf(tasks.filter(t => t.goalId === id)); }
+function isAllDone(list)  { const p = progressOf(list); return p.total > 0 && p.done === p.total; }
 function daysUntil(d) {
   if (!d) return null;
   const today = new Date();
@@ -790,41 +796,48 @@ function daysUntil(d) {
 function getFiltered() {
   const q    = document.getElementById('search-input').value.toLowerCase();
   const proj = document.getElementById('filter-project').value;
-  const ass  = document.getElementById('filter-assignee').value;
   const pri  = document.getElementById('filter-priority').value;
+  const goal = document.getElementById('filter-goal').value;
   return tasks
     .filter(t =>
-      (!q    || t.title.toLowerCase().includes(q) || (t.project||'').toLowerCase().includes(q)) &&
+      (!q    || t.title.toLowerCase().includes(q) || (t.project||'').toLowerCase().includes(q) || goalTitle(t).toLowerCase().includes(q)) &&
       (!proj || t.project  === proj) &&
-      (!ass  || t.assignee === ass)  &&
+      (!goal || t.goalId   === goal) &&
       (!pri  || t.priority === pri)
     )
     .sort((a,b) => (PRI_ORDER[a.priority]??1) - (PRI_ORDER[b.priority]??1));
 }
 
+/* 목록 화면에는 진행 중인 업무만 보여준다 */
+function getActive() { return getFiltered().filter(t => t.status !== 'done'); }
+
+/* 기간 선택은 완료일이 있는 건에만 적용 — 완료일 기록 전에 끝난 업무가 사라져 보이지 않게 한다 */
+function getDone() {
+  const days  = Number(document.getElementById('done-period').value);
+  const since = days ? Date.now() - days * 86400000 : 0;
+  return getFiltered().filter(t => t.status === 'done' && (!t.completedAt || t.completedAt >= since));
+}
+
 /* ══════════════════════════════════════
    HTML HELPERS
 ══════════════════════════════════════ */
-function avatarHtml(name) {
-  if (!name) return '';
-  const c = MEMBER_COLORS[name] || { bg:'#F1EFE8', text:'#5F5E5A' };
-  const i = MEMBER_INITIALS[name] || name[0];
-  return `<div class="avatar" style="background:${c.bg};color:${c.text};">${i}</div>`;
-}
 function priorityHtml(p) {
   return { high:`<span class="priority p-high">높음</span>`, mid:`<span class="priority p-mid">보통</span>`, low:`<span class="priority p-low">낮음</span>` }[p] || '';
 }
-function levelHtml(lv) {
-  if (!lv) return '';
-  const cls = ['lv-1','lv-2','lv-3','lv-4','lv-5'][parseInt(lv)-1] || 'lv-1';
-  return `<span class="lv-badge ${cls}">Lv.${lv}</span>`;
+function progressHtml(p) {
+  const allDone = p.total > 0 && p.done === p.total;
+  return `<span class="goal-progress${allDone?' all-done':''}">${p.done}/${p.total} 완료</span>`;
 }
-function statusHtml(s) {
-  const cls = STATUS_CLASS[s] || 's-todo';
-  return `<span class="status-badge ${cls}">${STATUS_LABELS[s]||s}</span>`;
+function pathHtml(t) {
+  const parts = [t.project, goalTitle(t)].filter(Boolean);
+  return parts.length ? `<div class="task-path">${escHtml(parts.join(' › '))}</div>` : '';
+}
+function statusSelectHtml(t) {
+  const options = STATUS_CYCLE.map(s => `<option value="${s}"${s===t.status?' selected':''}>${STATUS_LABELS[s]}</option>`).join('');
+  return `<select class="status-select ${STATUS_CLASS[t.status]||'s-todo'}" title="상태 변경" onclick="event.stopPropagation()" onchange="setTaskStatus('${t.id}',this.value)">${options}</select>`;
 }
 
-/* D-day label for kanban card */
+/* D-day label for task card */
 function cardDueHtml(d, isDone) {
   if (isDone || !d) return '';
   const days = daysUntil(d);
@@ -882,7 +895,7 @@ function sortTasks(arr) {
   return [...arr].sort((a, b) => {
     const aDays = a.due ? daysUntil(a.due) : null;
     const bDays = b.due ? daysUntil(b.due) : null;
-    // 마감기한 없는 태스크는 맨 아래
+    // 마감기한 없는 세부업무는 맨 아래
     if (aDays === null && bDays === null) {
       return (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
     }
@@ -895,94 +908,367 @@ function sortTasks(arr) {
   });
 }
 
-function renderKanban() {
-  const cols = { todo:[], inprogress:[], wait:[], done:[] };
-  getFiltered().forEach(t => { if (cols[t.status]) cols[t.status].push(t); });
-  Object.entries(cols).forEach(([status, arr]) => {
-    const sorted = sortTasks(arr);
-    document.getElementById('cnt-' + status).textContent = sorted.length;
-    const el = document.getElementById('col-' + status);
-    if (!sorted.length) { el.innerHTML = '<div class="empty-col">없음</div>'; return; }
-    el.innerHTML = sorted.map(t => {
-      const isDone   = t.status === 'done';
-      const urgency  = cardUrgencyClass(t.due, isDone);
-      const dueHtml  = cardDueHtml(t.due, isDone);
-      return `
-        <div class="task-card${urgency?' '+urgency:''}" onclick="openEditModal('${t.id}')">
-          <div class="task-card-top">
-            <div class="task-title">${escHtml(t.title)}</div>
-            <div class="task-card-badges">
-              ${avatarHtml(t.assignee)}
-              ${priorityHtml(t.priority)}
-              ${levelHtml(t.level)}
-            </div>
-          </div>
-          <div class="task-bottom">
-            ${dueHtml}
-          </div>
-        </div>`;
-    }).join('');
+/* ── 보드: 프로젝트 → 과업 → 세부업무 ── */
+function projectTasks(project) {
+  return tasks.filter(t => project === NO_PROJECT ? !projects.includes(t.project) : t.project === project);
+}
+function groupTasks(project, goal) {
+  const list = projectTasks(project);
+  if (goal !== UNGROUPED) return list.filter(t => t.goalId === goal);
+  if (project === NO_PROJECT) return list;
+  const ids = goals.filter(g => g.project === project).map(g => g.id);
+  return list.filter(t => !ids.includes(t.goalId));
+}
+/* 드래그로 순서를 정한 업무가 앞에 오고, 나머지는 자동 정렬을 따른다 */
+function withManualOrder(list, sorted) {
+  const placed = list.filter(t => t.order != null).sort((a,b) => a.order - b.order);
+  return [...placed, ...sorted(list.filter(t => t.order == null))];
+}
+function sortBoardTasks(list) {
+  const active = list.filter(t => t.status !== 'done');
+  const done   = list.filter(t => t.status === 'done');
+  const recent = arr => [...arr].sort((a,b) => (b.completedAt||0) - (a.completedAt||0));
+  return [...withManualOrder(active, sortTasks), ...withManualOrder(done, recent)];
+}
+function cardToolsHtml(remove, rename) {
+  return `
+    <div class="card-tools" onclick="event.stopPropagation()">
+      ${rename ? `<button class="card-tool" title="이름 변경" onclick="${rename}">✎</button>` : ''}
+      <button class="card-tool card-tool-x" title="삭제" onclick="${remove}">✕</button>
+    </div>`;
+}
+function boardCardHtml(title, sub, list, onclick, tools, selected, drag) {
+  const prog = progressOf(list);
+  const pct  = prog.total ? Math.round(prog.done / prog.total * 100) : 0;
+  /* 카드 안쪽을 열지 않아도 가장 급한 마감이 보이도록 한다 */
+  const next = list.filter(t => t.status !== 'done' && t.due).map(t => t.due).sort()[0];
+  return `
+    <div class="board-card${isAllDone(list)?' is-done':''}${selected?' selected':''}" onclick="${onclick}" ${drag||''}>
+      <div class="board-progress"><span style="width:${pct}%"></span></div>
+      ${tools}
+      <div class="board-card-top">
+        <div class="board-card-title">${escHtml(title)}</div>
+      </div>
+      ${sub ? `<div class="board-card-sub">${sub}</div>` : ''}
+      <div class="board-meta"><span>세부업무 ${prog.done}/${prog.total} 완료</span>${next ? listDueHtml(next) : ''}</div>
+    </div>`;
+}
+function boardFormHtml(placeholder) {
+  return `
+    <div class="board-card board-form" onclick="event.stopPropagation()">
+      <input type="text" id="board-form-input" placeholder="${placeholder}" value="${escHtml(boardForm.value)}"
+        oninput="boardForm.value=this.value"
+        onkeydown="if(event.isComposing)return;if(event.key==='Enter')boardFormSave();if(event.key==='Escape')boardFormCancel()">
+      <button class="btn btn-sm btn-primary" onclick="boardFormSave()">저장</button>
+      <button class="btn btn-sm" onclick="boardFormCancel()">취소</button>
+      ${boardForm.error ? `<div class="board-form-error">${boardForm.error}</div>` : ''}
+    </div>`;
+}
+/* 열의 맨 끝에 놓이는 + 카드 — 누르면 그 자리가 이름 입력 카드로 바뀐다 */
+function boardAddCardHtml(kind, placeholder) {
+  if (boardForm && boardForm.kind === kind) return boardFormHtml(placeholder);
+  return `<button class="board-add-card" data-kind="${kind}" title="${placeholder}" onclick="boardFormOpen('${kind}')">＋</button>`;
+}
+function taskCardHtml(t, showPath) {
+  const isDone  = t.status === 'done';
+  const urgency = cardUrgencyClass(t.due, isDone);
+  return `
+    <div class="task-card${urgency?' '+urgency:''}${isDone?' is-done':''}" onclick="openEditModal('${t.id}')" ${showPath ? '' : dragAttrs('task', t.id)}>
+      ${cardToolsHtml(`deleteTask('${t.id}')`)}
+      ${showPath ? pathHtml(t) : ''}
+      <div class="task-card-top">
+        <button class="check-btn" title="${isDone?'완료 취소':'완료 처리'}" onclick="event.stopPropagation();toggleDone('${t.id}')">${isDone?'✓':''}</button>
+        <div class="task-title" title="${escHtml(t.title)}">${escHtml(t.title)}</div>
+        <div class="task-card-meta">
+          <span>${cardDueHtml(t.due, isDone)}</span>
+          <span>${priorityHtml(t.priority)}</span>
+          ${statusSelectHtml(t)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function sortCards(cards) {
+  return cards.sort((a,b) => isAllDone(a.list) - isAllDone(b.list)).map(c => c.html);
+}
+function projectCards() {
+  const cards = projects.map((p, i) => {
+    const list = projectTasks(p);
+    return { list, html:boardCardHtml(p, `과업 ${goals.filter(g => g.project === p).length}개`, list, `boardOpenProject(${i})`, cardToolsHtml(`deleteProject(${i})`), boardPath.project === p, dragAttrs('project', p)) };
   });
+  const orphans = projectTasks(NO_PROJECT);
+  if (orphans.length) cards.push({ list:orphans, html:boardCardHtml('프로젝트 없음', '', orphans, 'boardOpenProject(-1)', cardToolsHtml('deleteGroup(NO_PROJECT)'), boardPath.project === NO_PROJECT) });
+  return sortCards(cards);
+}
+function goalCards(project) {
+  const cards = goals.filter(g => g.project === project).map(g => {
+    const list = groupTasks(project, g.id);
+    if (boardForm && boardForm.kind === 'rename' && boardForm.goalId === g.id) return { list, html:boardFormHtml('과업 이름') };
+    const tools = cardToolsHtml(`deleteGoal('${g.id}')`, `boardFormOpen('rename','${g.id}')`);
+    return { list, html:boardCardHtml(g.title, '', list, `boardOpenGoal('${g.id}')`, tools, boardPath.goal === g.id, dragAttrs('goal', g.id)) };
+  });
+  const ungrouped = groupTasks(project, UNGROUPED);
+  if (ungrouped.length) cards.push({ list:ungrouped, html:boardCardHtml('미분류', '', ungrouped, `boardOpenGoal('${UNGROUPED}')`, cardToolsHtml('deleteGroup(boardPath.project)'), boardPath.goal === UNGROUPED) });
+  return sortCards(cards);
+}
+function taskCards(project, goal) {
+  return sortBoardTasks(groupTasks(project, goal)).map(t => taskCardHtml(t, false));
+}
+/* cards가 null이면 왼쪽 열에서 아직 선택하지 않은 상태 */
+function boardColumnHtml(label, scope, cards, hint, addCard) {
+  const body = cards && cards.length ? cards.join('') : addCard ? '' : `<div class="empty-col">${hint}</div>`;
+  return `
+    <section class="board-col">
+      <div class="board-col-head">${label}${cards ? `<span class="board-col-count">${cards.length}</span>` : ''}</div>
+      <div class="board-col-body" data-scope="${escHtml(scope)}">${body}${addCard}</div>
+    </section>`;
+}
+function boardColumnsHtml() {
+  const { project, goal } = boardPath;
+  return '<div class="board-columns">'
+    + boardColumnHtml('프로젝트', 'projects', projectCards(), '', boardAddCardHtml('project', '새 프로젝트 이름'))
+    + boardColumnHtml('과업', `goals:${project}`, project ? goalCards(project) : null, '왼쪽에서 프로젝트를 선택하세요',
+        project && project !== NO_PROJECT ? boardAddCardHtml('goal', '새 과업 이름') : '')
+    + boardColumnHtml('세부업무', `tasks:${project}:${goal}`, goal ? taskCards(project, goal) : null, '왼쪽에서 과업을 선택하세요',
+        goal ? boardAddCardHtml('task', '새 세부업무 이름') : '')
+    + '</div>';
+}
+/* 삭제 등으로 사라진 위치에 머물러 있지 않게 한다 */
+function normalizeBoardPath() {
+  const { project, goal } = boardPath;
+  if (project === NO_PROJECT ? !projectTasks(NO_PROJECT).length : project && !projects.includes(project)) { boardPath = { project:null, goal:null }; return; }
+  if (goal === UNGROUPED ? !groupTasks(project, UNGROUPED).length : goal && !goals.some(g => g.id === goal && g.project === project)) boardPath.goal = null;
+}
+function boardOpenProject(i) {
+  const project = i < 0 ? NO_PROJECT : projects[i];
+  if (project === boardPath.project) return;
+  boardPath = { project, goal:i < 0 ? UNGROUPED : null };
+  boardForm = null;
+  renderBoard();
+}
+function boardOpenGoal(goal) {
+  boardPath.goal = goal;
+  boardForm = null;
+  renderBoard();
+}
+function boardFormFocus() {
+  const input = document.getElementById('board-form-input');
+  input.focus();
+  input.select();
+}
+function boardFormOpen(kind, goalId) {
+  boardForm = { kind, goalId, value:goalId ? goals.find(g => g.id === goalId).title : '', error:'' };
+  renderBoard();
+  boardFormFocus();
+}
+function boardFormCancel() {
+  boardForm = null;
+  renderBoard();
+}
+function boardFormSave() {
+  const input = document.getElementById('board-form-input');
+  const name  = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const { kind, goalId } = boardForm;
+  const { project, goal } = boardPath;
+  const taken = kind === 'project' ? projects.includes(name)
+    : kind !== 'task' && goals.some(g => g.project === project && g.title === name && g.id !== goalId);
+  if (taken) {
+    boardForm.error = '같은 이름이 이미 있습니다';
+    renderBoard();
+    boardFormFocus();
+    return;
+  }
+  if (kind === 'project') projects.push(name);
+  if (kind === 'goal')    createGoal(project, name);
+  if (kind === 'rename')  goals.find(g => g.id === goalId).title = name;
+  if (kind === 'task')    tasks.unshift({
+    id:uid(), title:name,
+    project:project === NO_PROJECT ? '' : project,
+    goalId:goal === UNGROUPED ? '' : goal,
+    priority:'mid', due:'', status:'todo', note:'',
+    createdAt:Date.now(), completedAt:null
+  });
+  boardForm = null;
+  persist();
+  renderAll();
+  const addCard = document.querySelector(`.board-add-card[data-kind="${kind}"]`);
+  if (addCard) addCard.scrollIntoView({ block:'nearest' });
+}
+
+/* ── 드래그로 순서 변경 — 같은 열 안에서, 완료 여부가 같은 카드끼리만 옮긴다 ── */
+let dragCard = null;
+function dragAttrs(kind, id) {
+  return `draggable="true" data-drag-kind="${kind}" data-drag-id="${escHtml(id)}"`;
+}
+function dragColumn(e) {
+  const col  = e.target.closest('.board-col');
+  const body = col && col.querySelector('.board-col-body');
+  return dragCard && body === dragCard.parentNode ? body : null;
+}
+function moveDragCard(col, y) {
+  const done  = dragCard.classList.contains('is-done');
+  const peers = [...col.querySelectorAll('[data-drag-id]')].filter(c => c !== dragCard && c.classList.contains('is-done') === done);
+  const next  = peers.find(c => { const r = c.getBoundingClientRect(); return y < r.top + r.height / 2; });
+  if (next) col.insertBefore(dragCard, next);
+  else if (peers.length) peers[peers.length - 1].after(dragCard);
+}
+function saveDragOrder(col) {
+  const kind = dragCard.dataset.dragKind;
+  const ids  = [...col.querySelectorAll('[data-drag-id]')].map(c => c.dataset.dragId);
+  if (kind === 'project') projects = ids;
+  if (kind === 'task') ids.forEach((id, i) => { tasks.find(t => t.id === id).order = i; });
+  if (kind === 'goal') {
+    const own = goals.filter(g => g.project === boardPath.project);
+    goals = [
+      ...goals.filter(g => g.project !== boardPath.project),
+      ...ids.map(id => own.find(g => g.id === id)),
+      ...own.filter(g => !ids.includes(g.id))   /* 이름 변경 중이라 화면에 카드가 없는 과업 */
+    ];
+  }
+  persist();
+  renderAll();
+}
+const boardBody = document.getElementById('board-body');
+boardBody.addEventListener('dragstart', e => {
+  dragCard = e.target.closest ? e.target.closest('[data-drag-id]') : null;
+  if (!dragCard) return;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', dragCard.dataset.dragId);
+  requestAnimationFrame(() => { if (dragCard) dragCard.classList.add('dragging'); });
+});
+boardBody.addEventListener('dragover', e => {
+  const col = dragColumn(e);
+  if (!col) return;
+  e.preventDefault();
+  moveDragCard(col, e.clientY);
+});
+boardBody.addEventListener('drop', e => {
+  const col = dragColumn(e);
+  if (!col) return;
+  e.preventDefault();
+  saveDragOrder(col);
+  dragCard = null;
+});
+/* 열 밖에 놓거나 Esc로 취소하면 원래 순서로 되돌린다 */
+boardBody.addEventListener('dragend', () => {
+  if (!dragCard) return;
+  dragCard = null;
+  renderBoard();
+});
+
+const FILTER_IDS = ['search-input','filter-project','filter-goal','filter-priority'];
+function clearFilters() {
+  FILTER_IDS.forEach(id => { document.getElementById(id).value = ''; });
+  renderAll();
+}
+function renderBoard() {
+  const crumbs = document.getElementById('board-crumbs');
+  const body   = document.getElementById('board-body');
+  /* 검색·필터 중에는 계층을 건너뛰고 해당하는 세부업무를 바로 보여준다 */
+  if (FILTER_IDS.some(id => document.getElementById(id).value)) {
+    const found = sortBoardTasks(getFiltered());
+    crumbs.innerHTML = `<span class="crumb-current">검색 결과 ${found.length}건</span><button class="crumb" onclick="clearFilters()">필터 초기화</button>`;
+    body.innerHTML = `<div class="board-grid">${found.length ? found.map(t => taskCardHtml(t, true)).join('') : '<div class="empty-col">조건에 맞는 세부업무가 없습니다</div>'}</div>`;
+    return;
+  }
+  normalizeBoardPath();
+  /* 카드를 누르거나 상태를 바꿔도 같은 목록을 보던 위치는 유지한다 */
+  const scrolled = new Map([...body.querySelectorAll('.board-col-body')].map(el => [el.dataset.scope, el.scrollTop]));
+  crumbs.innerHTML = '';
+  body.innerHTML = boardColumnsHtml();
+  body.querySelectorAll('.board-col-body').forEach(el => { el.scrollTop = scrolled.get(el.dataset.scope) || 0; });
 }
 
 function renderList() {
   const body = document.getElementById('list-body');
-  const arr  = getFiltered();
+  const arr  = getActive();
   if (!arr.length) {
-    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-tertiary);padding:2rem;">태스크가 없습니다</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:2rem;">세부업무가 없습니다</td></tr>';
     return;
   }
   body.innerHTML = arr.map(t => `
     <tr>
       <td style="font-weight:500;">${escHtml(t.title)}</td>
       <td style="color:var(--text-secondary);">${escHtml(t.project||'-')}</td>
-      <td>${t.assignee ? `<div style="display:flex;align-items:center;gap:6px;">${avatarHtml(t.assignee)}<span>${escHtml(t.assignee)}</span></div>` : '-'}</td>
+      <td style="color:var(--text-secondary);">${escHtml(goalTitle(t)||'-')}</td>
       <td>${priorityHtml(t.priority)}</td>
-      <td>${levelHtml(t.level)||'-'}</td>
       <td>${listDueHtml(t.due)}</td>
-      <td>${statusHtml(t.status)}</td>
+      <td>${statusSelectHtml(t)}</td>
       <td><button class="btn btn-sm" onclick="openEditModal('${t.id}')">✏️</button></td>
     </tr>`).join('');
 }
 
-function renderProjects() {
-  const list = document.getElementById('project-list');
-  if (!projects.length) { list.innerHTML = '<div class="empty-col">프로젝트가 없습니다</div>'; return; }
-  list.innerHTML = projects.map((p, i) => {
-    const ptasks = tasks.filter(t => t.project === p);
-    const taskRows = ptasks.length
-      ? ptasks.sort((a,b)=>(PRI_ORDER[a.priority]??1)-(PRI_ORDER[b.priority]??1)).map(t => `
-          <div class="project-task-row" onclick="openEditModal('${t.id}')">
-            <div class="project-task-title">${escHtml(t.title)}</div>
-            <div class="project-task-meta">
-              ${priorityHtml(t.priority)}
-              ${levelHtml(t.level)}
-              ${statusHtml(t.status)}
-              ${listDueHtml(t.due)}
-            </div>
-          </div>`).join('')
-      : '<div style="padding:10px 14px;font-size:12px;color:var(--text-tertiary);">태스크 없음</div>';
+function isDoneNodeOpen(key, byDefault) { return doneToggled.has(key) ? !byDefault : byDefault; }
+function toggleDoneNode(el) {
+  const key = el.dataset.key;
+  if (doneToggled.has(key)) doneToggled.delete(key);
+  else doneToggled.add(key);
+  el.classList.toggle('expanded');
+}
+function doneDateLabel(t) {
+  if (!t.completedAt) return '이전 완료';
+  const d = new Date(t.completedAt), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}`;
+}
+
+/* 완료된 세부업무에서 상위 프로젝트·과업을 거슬러 트리를 만든다 (데이터는 옮기지 않는다) */
+function renderDone() {
+  const arr = getDone().sort((a,b) => (b.completedAt||0) - (a.completedAt||0));
+  document.getElementById('done-summary').textContent = `완료 ${arr.length}건`;
+  const list = document.getElementById('done-list');
+  if (!arr.length) { list.innerHTML = '<div class="empty-col">이 기간에 완료한 업무가 없습니다</div>'; return; }
+
+  const searching = !!document.getElementById('search-input').value;
+  const tree = new Map();   /* 최근 완료 순서가 그대로 프로젝트·과업 순서가 된다 */
+  arr.forEach(t => {
+    const pkey = t.project || '';
+    if (!tree.has(pkey)) tree.set(pkey, new Map());
+    const gkey = goalOf(t) ? t.goalId : '';
+    if (!tree.get(pkey).has(gkey)) tree.get(pkey).set(gkey, []);
+    tree.get(pkey).get(gkey).push(t);
+  });
+
+  list.innerHTML = [...tree].map(([project, groups]) => {
+    const pkey  = 'p:' + project;
+    const count = [...groups.values()].reduce((n, g) => n + g.length, 0);
+    const blocks = [...groups].map(([gid, items]) => {
+      const key  = gid ? 'g:' + gid : 'n:' + project;
+      const goal = goals.find(g => g.id === gid);
+      const title = goal
+        ? `<div class="goal-title">${escHtml(goal.title)}</div>${progressHtml(goalProgress(gid))}`
+        : `<div class="goal-title ungrouped">미분류</div><span class="goal-progress">${items.length}건</span>`;
+      const rows = items.map(t => `
+        <div class="project-task-row" onclick="openEditModal('${t.id}')">
+          <div class="project-task-title">${escHtml(t.title)}</div>
+          <div class="project-task-meta">
+            ${priorityHtml(t.priority)}
+            <span class="done-date">${doneDateLabel(t)}</span>
+            ${statusSelectHtml(t)}
+          </div>
+        </div>`).join('');
+      return `
+        <div class="done-goal${isDoneNodeOpen(key, searching)?' expanded':''}" data-key="${escHtml(key)}">
+          <div class="goal-row goal-row-toggle" onclick="toggleDoneNode(this.parentNode)">
+            <i class="project-chevron" style="font-style:normal;">▶</i>${title}
+          </div>
+          <div class="goal-tasks">${rows}</div>
+        </div>`;
+    }).join('');
     return `
-      <div class="project-item" id="pi-${i}">
-        <div class="project-item-header" onclick="toggleProject(${i})">
+      <div class="project-item${isDoneNodeOpen(pkey, true)?' expanded':''}" data-key="${escHtml(pkey)}">
+        <div class="project-item-header" onclick="toggleDoneNode(this.parentNode)">
           <div class="project-item-left">
             <i class="project-chevron" style="font-style:normal;">▶</i>
             <div>
-              <div class="project-item-name">${escHtml(p)}</div>
-              <div class="project-item-count">태스크 ${ptasks.length}개</div>
+              <div class="project-item-name">${escHtml(project || '프로젝트 없음')}</div>
+              <div class="project-item-count">완료 ${count}건</div>
             </div>
           </div>
-          <div class="project-item-actions" onclick="event.stopPropagation()">
-            <button class="btn btn-sm" style="color:#A32D2D;" onclick="deleteProject(${i})">🗑</button>
-          </div>
         </div>
-        <div class="project-task-list">${taskRows}</div>
+        <div class="project-task-list">${blocks}</div>
       </div>`;
   }).join('');
-}
-
-function toggleProject(i) {
-  document.getElementById('pi-' + i).classList.toggle('expanded');
 }
 
 function updateFilterOptions() {
@@ -990,10 +1276,12 @@ function updateFilterOptions() {
   const cur = ps.value;
   ps.innerHTML = '<option value="">모든 프로젝트</option>' + projects.map(p => `<option value="${p}"${cur===p?' selected':''}>${escHtml(p)}</option>`).join('');
 
-  const assignees = [...new Set(tasks.map(t => t.assignee).filter(Boolean))];
-  const as  = document.getElementById('filter-assignee');
-  const cura = as.value;
-  as.innerHTML = '<option value="">모든 담당자</option>' + assignees.map(a => `<option value="${a}"${cura===a?' selected':''}>${escHtml(a)}</option>`).join('');
+  /* 과업 필터는 선택한 프로젝트의 과업만 보여준다 */
+  const gs   = document.getElementById('filter-goal');
+  const curg = gs.value;
+  gs.innerHTML = '<option value="">모든 과업</option>' + goals
+    .filter(g => !cur || g.project === cur)
+    .map(g => `<option value="${g.id}"${curg===g.id?' selected':''}>${escHtml(cur ? g.title : g.project + ' › ' + g.title)}</option>`).join('');
 }
 
 function updateProjectSelects() {
@@ -1004,12 +1292,45 @@ function updateProjectSelects() {
   });
 }
 
+/* 프로젝트에 속한 과업만 선택지로 보여준다 */
+function updateGoalSelect(prefix, selected) {
+  const project = document.getElementById(prefix + '-project').value;
+  const sel     = document.getElementById(prefix + '-goal');
+  sel.disabled  = !project;
+  if (!project) { sel.innerHTML = '<option value="">프로젝트를 먼저 선택하세요</option>'; return; }
+  const pgoals = goals.filter(g => g.project === project);
+  sel.innerHTML = '<option value="">미분류</option>'
+    + pgoals.map(g => `<option value="${g.id}">${escHtml(g.title)}</option>`).join('')
+    + `<option value="${NEW_GOAL}">＋ 새 과업 추가…</option>`;
+  sel.value = pgoals.some(g => g.id === selected) ? selected : '';
+}
+function onGoalSelect(prefix) {
+  const sel = document.getElementById(prefix + '-goal');
+  if (sel.value !== NEW_GOAL) return;
+  sel.value = '';
+  const save = () => {
+    const name = document.getElementById('ask-name').value.trim();
+    if (!name) return;
+    fsCloseModal();
+    const goal = createGoal(document.getElementById(prefix + '-project').value, name);
+    updateGoalSelect(prefix, goal.id);
+    renderAll();
+  };
+  fsShowModal('새 과업', '<div class="field"><input type="text" id="ask-name" placeholder="과업 이름"></div>', [
+    { label:'취소', run:fsCloseModal },
+    { label:'저장', primary:true, run:save }
+  ]);
+  const input = document.getElementById('ask-name');
+  input.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) save(); };
+  input.focus();
+}
+
 function renderAll() {
   updateFilterOptions();
   renderStats();
-  renderKanban();
+  renderBoard();
   renderList();
-  renderProjects();
+  renderDone();
 }
 
 /* ══════════════════════════════════════
@@ -1034,22 +1355,10 @@ function selectPriority(prefix, btn) {
   btn.classList.add(v === 'high' ? 'sel-high' : v === 'mid' ? 'sel-mid' : 'sel-low');
 }
 
-function selectLevel(prefix, btn) {
-  const grp = document.getElementById(prefix + '-level-group');
-  grp.querySelectorAll('.choice-btn').forEach(b => b.className = 'choice-btn');
-  btn.classList.add('sel-lv');
-}
-
 function getSelectedPriority(prefix) {
   const grp = document.getElementById(prefix + '-priority-group');
   const sel = grp.querySelector('.choice-btn.sel-high, .choice-btn.sel-mid, .choice-btn.sel-low');
   return sel ? sel.dataset.val : 'mid';
-}
-
-function getSelectedLevel(prefix) {
-  const grp = document.getElementById(prefix + '-level-group');
-  const sel = grp.querySelector('.choice-btn.sel-lv');
-  return sel ? sel.dataset.val : '1';
 }
 
 function setPriority(prefix, val) {
@@ -1057,14 +1366,6 @@ function setPriority(prefix, val) {
   grp.querySelectorAll('.choice-btn').forEach(b => {
     b.className = 'choice-btn';
     if (b.dataset.val === val) b.classList.add(val === 'high' ? 'sel-high' : val === 'mid' ? 'sel-mid' : 'sel-low');
-  });
-}
-
-function setLevel(prefix, val) {
-  const grp = document.getElementById(prefix + '-level-group');
-  grp.querySelectorAll('.choice-btn').forEach(b => {
-    b.className = 'choice-btn';
-    if (b.dataset.val === String(val)) b.classList.add('sel-lv');
   });
 }
 
@@ -1097,11 +1398,11 @@ function openCreateModal() {
   cStatusVal = 'todo';
   updateStatusPill('c-status-pill', cStatusVal);
   document.getElementById('c-title').value    = '';
-  document.getElementById('c-project').value  = '';
-  document.getElementById('c-assignee').value = '';
+  /* 보드에서 보고 있던 프로젝트·과업을 미리 선택해 둔다 */
+  document.getElementById('c-project').value  = projects.includes(boardPath.project) ? boardPath.project : '';
+  updateGoalSelect('c', boardPath.goal);
   document.getElementById('c-due').value      = '';
   setPriority('c', 'mid');
-  setLevel('c', '1');
   document.getElementById('create-modal-bg').classList.add('open');
   setTimeout(() => document.getElementById('c-title').focus(), 50);
 }
@@ -1116,18 +1417,36 @@ function saveCreateTask() {
     id:        uid(),
     title,
     project:   document.getElementById('c-project').value,
-    assignee:  document.getElementById('c-assignee').value,
+    goalId:    document.getElementById('c-goal').value,
     priority:  getSelectedPriority('c'),
-    level:     getSelectedLevel('c'),
     due:       document.getElementById('c-due').value,
     status:    cStatusVal,
     note:      '',
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    completedAt: completedAtFor(cStatusVal, {})
   };
   tasks.unshift(data);
   persist();
   closeCreateModal();
   renderAll();
+}
+
+/* 완료로 바뀐 시점에만 기록하고, 다시 열면 지운다 */
+function completedAtFor(status, orig) {
+  if (status !== 'done') return null;
+  return orig.status === 'done' ? (orig.completedAt ?? null) : Date.now();
+}
+function setTaskStatus(id, status) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.completedAt = completedAtFor(status, t);
+  t.status = status;
+  persist();
+  renderAll();
+}
+function toggleDone(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) setTaskStatus(id, t.status === 'done' ? 'todo' : 'done');
 }
 
 /* ══════════════════════════════════════
@@ -1158,9 +1477,8 @@ function openEditModal(id) {
 
   /* panel fields */
   document.getElementById('e-project').value  = t.project || '';
-  document.getElementById('e-assignee').value = t.assignee || '';
+  updateGoalSelect('e', t.goalId);
   setPriority('e', t.priority || 'mid');
-  setLevel('e', t.level || '1');
 
   document.getElementById('e-delete-btn').style.display = 'flex';
 
@@ -1210,13 +1528,13 @@ function saveEditTask() {
     id:        editId,
     title,
     project:   document.getElementById('e-project').value,
-    assignee:  document.getElementById('e-assignee').value,
+    goalId:    document.getElementById('e-goal').value,
     priority:  getSelectedPriority('e'),
-    level:     getSelectedLevel('e'),
     due:       document.getElementById('e-due').value,
     status:    eStatusVal,
     note:      document.getElementById('e-note-editor').innerHTML,
-    createdAt: orig.createdAt || Date.now()
+    createdAt: orig.createdAt || Date.now(),
+    completedAt: completedAtFor(eStatusVal, orig)
   };
   const idx = tasks.findIndex(t => t.id === editId);
   if (idx !== -1) tasks[idx] = data;
@@ -1225,33 +1543,61 @@ function saveEditTask() {
   renderAll();
 }
 
-function deleteEditTask() {
-  if (!editId || !confirm('이 태스크를 삭제할까요?')) return;
-  tasks = tasks.filter(t => t.id !== editId);
+/* 브라우저 기본 confirm 창은 환경에 따라 뜨지 않고 멈출 수 있어 앱 안의 창을 쓴다 */
+function askDelete(title, message, run) {
+  fsShowModal(title, `<p>${escHtml(message)}</p>`, [
+    { label:'취소', run:fsCloseModal },
+    { label:'삭제', primary:true, run:() => { fsCloseModal(); run(); persist(); renderAll(); } }
+  ]);
+}
+function deleteTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  askDelete(`"${t.title}" 세부업무를 삭제할까요?`, '업무내용도 함께 삭제되며 되돌릴 수 없습니다.', () => {
+    tasks = tasks.filter(x => x.id !== id);
+    closeEditModal();
+  });
+}
+function deleteEditTask() { deleteTask(editId); }
+
+/* ══════════════════════════════════════
+   GOAL ACTIONS
+══════════════════════════════════════ */
+function createGoal(project, title) {
+  const found = goals.find(g => g.project === project && g.title === title);
+  if (found) return found;
+  const goal = { id:uid(), project, title, createdAt:Date.now() };
+  goals.push(goal);
   persist();
-  closeEditModal();
-  renderAll();
+  return goal;
+}
+function deleteGoal(id) {
+  const goal = goals.find(g => g.id === id);
+  if (!goal) return;
+  const count = tasks.filter(t => t.goalId === id).length;
+  askDelete(`"${goal.title}" 과업을 삭제할까요?`, count ? `세부업무 ${count}개는 삭제되지 않고 미분류로 옮겨집니다.` : '이 과업에는 세부업무가 없습니다.', () => {
+    goals = goals.filter(g => g.id !== id);
+    tasks.forEach(t => { if (t.goalId === id) t.goalId = ''; });
+  });
+}
+/* 미분류·프로젝트 없음은 세부업무를 옮겨 둘 곳이 없어 안의 세부업무까지 지운다 */
+function deleteGroup(project) {
+  const list  = groupTasks(project, UNGROUPED);
+  const label = project === NO_PROJECT ? '프로젝트 없음' : '미분류';
+  askDelete(`"${label}" 카드를 삭제할까요?`, `안에 있는 세부업무 ${list.length}개가 함께 삭제되며 되돌릴 수 없습니다.`, () => {
+    tasks = tasks.filter(t => !list.includes(t));
+  });
 }
 
 /* ══════════════════════════════════════
    PROJECT ACTIONS
 ══════════════════════════════════════ */
-function addProject() {
-  const input = document.getElementById('new-project-input');
-  const name  = input.value.trim();
-  if (!name || projects.includes(name)) return;
-  projects.push(name);
-  persist();
-  input.value = '';
-  renderAll();
-}
-
 function deleteProject(i) {
-  const name = projects[i];
-  if (!confirm(`"${name}" 프로젝트를 삭제할까요?\n(태스크는 삭제되지 않습니다)`)) return;
-  projects.splice(i, 1);
-  persist();
-  renderAll();
+  const name  = projects[i];
+  const count = projectTasks(name).length;
+  askDelete(`"${name}" 프로젝트를 삭제할까요?`, count ? `세부업무 ${count}개는 삭제되지 않고 '프로젝트 없음'으로 옮겨집니다.` : '이 프로젝트에는 세부업무가 없습니다.', () => {
+    projects.splice(projects.indexOf(name), 1);
+  });
 }
 
 /* ══════════════════════════════════════
@@ -1259,16 +1605,16 @@ function deleteProject(i) {
 ══════════════════════════════════════ */
 function downloadExcel() {
   const arr = getFiltered();
-  const header = ['태스크', '프로젝트', '담당자', '우선순위', '난이도', '마감일', '상태', '업무내용'];
+  const header = ['세부업무', '프로젝트', '과업', '우선순위', '마감일', '상태', '완료일', '업무내용'];
   const priLabel = { high:'높음', mid:'보통', low:'낮음' };
   const rows = arr.map(t => [
     t.title,
     t.project || '',
-    t.assignee || '',
+    goalTitle(t),
     priLabel[t.priority] || t.priority,
-    t.level ? 'Lv.' + t.level : '',
     t.due || '',
     STATUS_LABELS[t.status] || t.status,
+    t.status === 'done' ? doneDateLabel(t) : '',
     (t.note || '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()
   ]);
 
@@ -1282,7 +1628,7 @@ function downloadExcel() {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = '태스크_목록.csv';
+  a.download = '세부업무_목록.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1392,10 +1738,11 @@ function fsReadJsonKey(key, fallback) {
 function fsCollect() {
   return {
     app: 'TaskTracker',
-    version: 1,
+    version: 2,
     savedAt: new Date().toISOString(),
     tasks: fsReadJsonKey('ws_tasks', []),
     projects: fsReadJsonKey('ws_projects', []),
+    goals: fsReadJsonKey('ws_goals', []),
     memo: localStorage.getItem('ws_memo') || '',
   };
 }
@@ -1537,7 +1884,7 @@ async function fsPickFolder() {
 
   if (saved === undefined) { fsShowUnreadable(); return; }
   const local = fsCollect();
-  if (saved === null || fsSameTasks(saved.tasks, local.tasks)) { await fsConnect(dir); return; }
+  if (saved === null || (fsSameTasks(saved.tasks, local.tasks) && fsSameTasks(saved.goals || [], local.goals))) { await fsConnect(dir); return; }
   if (fsHasRealTasks(local.tasks)) fsShowConflict(dir, saved, local);
   else fsShowFound(dir, saved);
 }
@@ -1552,6 +1899,7 @@ async function fsRestore(dir, saved) {
   }
   localStorage.setItem('ws_tasks', JSON.stringify(saved.tasks));
   if (Array.isArray(saved.projects)) localStorage.setItem('ws_projects', JSON.stringify(saved.projects));
+  localStorage.setItem('ws_goals', JSON.stringify(Array.isArray(saved.goals) ? saved.goals : []));
   localStorage.setItem('ws_memo', saved.memo || '');
   load();
   renderAll();
@@ -1607,7 +1955,7 @@ function fsEscape(text) {
 }
 function fsDescribe(label, data) {
   const when = data.savedAt ? ` · ${fsFormatTime(data.savedAt)}` : '';
-  return `<strong>${label}</strong>: 태스크 ${data.tasks.length}개${when}`;
+  return `<strong>${label}</strong>: 세부업무 ${data.tasks.length}개${when}`;
 }
 function fsShowModal(title, body, actions) {
   document.getElementById('fs-modal-title').textContent = title;
@@ -1664,7 +2012,7 @@ function fsShowFailed(message) {
 function fsShowStatus() {
   const folder = `<p><strong>저장 폴더</strong>: ${fsEscape(fsDir.name)}</p>`;
   const body = fsState === 'waiting'
-    ? `${folder}<p>지금은 태스크가 없거나 샘플뿐이라, 기존 파일을 지키기 위해 저장하지 않고 있어요. 태스크를 추가하면 다시 저장돼요.</p>`
+    ? `${folder}<p>지금은 세부업무가 없거나 샘플뿐이라, 기존 파일을 지키기 위해 저장하지 않고 있어요. 세부업무를 추가하면 다시 저장돼요.</p>`
     : `${folder}<p><strong>마지막 저장</strong>: ${fsLastSaved ? fsFormatTime(fsLastSaved) : '-'}</p>
        <p>날짜별 사본은 <strong>backups</strong> 폴더에 최근 ${FS_DAILY_KEEP}일치를 보관해요.</p>`;
   fsShowModal('💾 자동 저장', body,
@@ -1733,12 +2081,13 @@ if (sessionStorage.getItem('ws_auth') === '1') {
 }
 
 function initSample() {
+  const home = createGoal('웹 리디자인', '메인 페이지 개편');
   tasks = [
-    { id:uid(), title:'랜딩 페이지 디자인', project:'웹 리디자인', assignee:'나',     priority:'high', level:'3', due:dayOffset(2),  status:'inprogress', note:'메인 비주얼 영역 먼저 작업 예정', createdAt:Date.now() },
-    { id:uid(), title:'사용자 인터뷰 정리', project:'마케팅',      assignee:'팀원 A', priority:'mid',  level:'2', due:dayOffset(5),  status:'todo',       note:'', createdAt:Date.now() },
-    { id:uid(), title:'API 연동 테스트',    project:'앱 개발',     assignee:'팀원 B', priority:'high', level:'4', due:dayOffset(-1), status:'wait',       note:'', createdAt:Date.now() },
-    { id:uid(), title:'주간 보고서 작성',   project:'기타',        assignee:'나',     priority:'low',  level:'1', due:dayOffset(7),  status:'todo',       note:'', createdAt:Date.now() },
-    { id:uid(), title:'로고 시안 확인',     project:'웹 리디자인', assignee:'팀원 A', priority:'mid',  level:'2', due:dayOffset(1),  status:'done',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'랜딩 페이지 디자인', project:'웹 리디자인', goalId:home.id, priority:'high', due:dayOffset(2),  status:'inprogress', note:'메인 비주얼 영역 먼저 작업 예정', createdAt:Date.now() },
+    { id:uid(), title:'사용자 인터뷰 정리', project:'마케팅',      priority:'mid',  due:dayOffset(5),  status:'todo',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'API 연동 테스트',    project:'앱 개발',     priority:'high', due:dayOffset(-1), status:'wait',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'주간 보고서 작성',   project:'기타',        priority:'low',  due:dayOffset(7),  status:'todo',       note:'', createdAt:Date.now() },
+    { id:uid(), title:'로고 시안 확인',     project:'웹 리디자인', goalId:home.id, priority:'mid',  due:dayOffset(1),  status:'done',       note:'', createdAt:Date.now(), completedAt:Date.now() },
   ];
   persist();
 }
