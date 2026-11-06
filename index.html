@@ -458,6 +458,33 @@
       font-size: 12px;
       color: var(--text-tertiary);
     }
+
+    /* ── Auto save ── */
+    .save-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .save-chip:hover { border-color: var(--border-mid); }
+    .save-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); flex-shrink: 0; }
+    .save-chip[data-state="on"] .save-dot { background: #3B6D11; }
+    .save-chip[data-state="off"] .save-dot,
+    .save-chip[data-state="paused"] .save-dot { background: #BA7517; }
+    .save-chip[data-state="error"] .save-dot { background: #A32D2D; }
+    @media (max-width:640px) { #save-chip-label { display:none; } }
+    .fs-body { font-size: 14px; line-height: 1.65; color: var(--text-secondary); }
+    .fs-body p + p { margin-top: 10px; }
+    .fs-body strong { font-weight: 500; color: var(--text-primary); }
+    .fs-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 1.25rem; }
   </style>
 </head>
 <body>
@@ -489,6 +516,10 @@
       <span class="weather-temp" id="weather-temp">23°C</span>
       <span class="weather-desc" id="weather-desc">구름 조금</span>
     </div>
+    <!-- 자동 저장 상태 -->
+    <button class="save-chip" id="save-chip" data-state="off" onclick="fsChipClick()">
+      <span class="save-dot"></span><span id="save-chip-label">자동 저장 꺼짐</span>
+    </button>
     <div class="tabs">
       <button class="tab active" onclick="switchTab(&#39;kanban&#39;,this)">📋 보드</button>
       <button class="tab" onclick="switchTab(&#39;list&#39;,this)">📄 목록</button>
@@ -888,6 +919,15 @@
   </div>
 </div>
 
+<!-- ── Auto save modal ── -->
+<div class="modal-bg" id="fs-modal-bg">
+  <div class="modal">
+    <div class="modal-header"><h2 id="fs-modal-title"></h2></div>
+    <div class="fs-body" id="fs-modal-body"></div>
+    <div class="fs-actions" id="fs-modal-actions"></div>
+  </div>
+</div>
+
 <!-- ── Image lightbox ── -->
 <div id="img-lightbox" onclick="closeLightbox()">
   <img id="img-lightbox-img" src="./index_files/index.html" alt="이미지 크게보기">
@@ -1108,6 +1148,7 @@ function load() {
 function persist() {
   localStorage.setItem('ws_tasks',    JSON.stringify(tasks));
   localStorage.setItem('ws_projects', JSON.stringify(projects));
+  fsScheduleSave();
 }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function daysUntil(d) {
@@ -1526,6 +1567,7 @@ function closeMemoModal() { document.getElementById('memo-modal-bg').classList.r
 function closeMemoModalBg(e) { if (e.target === document.getElementById('memo-modal-bg')) closeMemoModal(); }
 function saveMemo() {
   localStorage.setItem('ws_memo', document.getElementById('memo-textarea').value);
+  fsScheduleSave();
   const ind = document.getElementById('memo-saved-indicator');
   ind.style.opacity = '1';
   clearTimeout(ind._t);
@@ -1685,6 +1727,352 @@ function closeLightbox() {
 }
 
 /* ══════════════════════════════════════
+   AUTO SAVE (사용자가 지정한 폴더에 파일로 자동 저장)
+   브라우저 저장소가 작업 원본이고, 폴더의 파일은 항상 최신으로 맞춰지는 사본이다.
+   Edge·Chrome 전용 기능이며, 그 외 브라우저에서는 기존과 똑같이 동작한다.
+══════════════════════════════════════ */
+const FS_MAIN_FILE   = 'tasktracker-data.json';
+const FS_BACKUP_DIR  = 'backups';
+const FS_DAILY_RE    = /^tasktracker-\d{4}-\d{2}-\d{2}\.json$/;
+const FS_DAILY_KEEP  = 30;
+const FS_DEBOUNCE_MS = 1500;
+const FS_SAMPLE_TITLES = ['랜딩 페이지 디자인','사용자 인터뷰 정리','API 연동 테스트','주간 보고서 작성','로고 시안 확인'];
+const FS_SUPPORTED   = 'showDirectoryPicker' in window;
+
+let fsDir = null;          /* 지정된 폴더 */
+let fsState = 'off';       /* on | waiting | off | paused | error | unsupported */
+let fsTimer = null;
+let fsSaving = false;
+let fsPending = false;
+let fsLastSaved = null;
+let fsLastDaily = null;
+
+/* ── 폴더 기억하기 (브라우저 재시작 후에도 유지) ── */
+function fsIdb(mode, run) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open('ws_fs', 1);
+    open.onupgradeneeded = () => open.result.createObjectStore('kv');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const db  = open.result;
+      const tx  = db.transaction('kv', mode);
+      const req = run(tx.objectStore('kv'));
+      tx.oncomplete = () => { db.close(); resolve(req.result); };
+      tx.onerror    = () => { db.close(); reject(tx.error); };
+    };
+  });
+}
+function fsRememberDir(dir) { return fsIdb('readwrite', s => s.put(dir, 'dir')); }
+function fsRecallDir()      { return fsIdb('readonly',  s => s.get('dir')); }
+
+/* ── 데이터 ── */
+function fsReadJsonKey(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch(e) { return fallback; }
+}
+function fsCollect() {
+  return {
+    app: 'TaskTracker',
+    version: 1,
+    savedAt: new Date().toISOString(),
+    tasks: fsReadJsonKey('ws_tasks', []),
+    projects: fsReadJsonKey('ws_projects', []),
+    memo: localStorage.getItem('ws_memo') || '',
+  };
+}
+/* 비어 있거나 샘플뿐인 상태는 보관할 데이터가 아니다 — 파일을 덮어쓰지 않는 기준 */
+function fsHasRealTasks(list) {
+  if (!list.length) return false;
+  return list.length > FS_SAMPLE_TITLES.length || !list.every(t => FS_SAMPLE_TITLES.includes(t.title));
+}
+function fsIsValid(data) {
+  return !!data && data.app === 'TaskTracker' && Array.isArray(data.tasks);
+}
+function fsSameTasks(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+function fsStamp() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`
+       + `_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+function fsFormatTime(value) {
+  return new Date(value).toLocaleString('ko-KR', { dateStyle:'medium', timeStyle:'short' });
+}
+
+/* ── 파일 읽기·쓰기 ── */
+async function fsWriteJson(dir, name, data) {
+  const handle   = await dir.getFileHandle(name, { create:true });
+  const writable = await handle.createWritable();
+  await writable.write(JSON.stringify(data, null, 2));
+  await writable.close();
+}
+async function fsParseFile(handle) {
+  const file = await handle.getFile();
+  try { return JSON.parse(await file.text()); } catch(e) { return undefined; }
+}
+/* 파일 없음 → null, 읽을 수 없는 파일 → undefined */
+async function fsReadMain(dir) {
+  let handle;
+  try { handle = await dir.getFileHandle(FS_MAIN_FILE); }
+  catch(e) { if (e.name === 'NotFoundError') return null; throw e; }
+  const data = await fsParseFile(handle);
+  return fsIsValid(data) ? data : undefined;
+}
+async function fsSafetyCopy(dir, prefix, data) {
+  const backups = await dir.getDirectoryHandle(FS_BACKUP_DIR, { create:true });
+  await fsWriteJson(backups, `${prefix}-${fsStamp()}.json`, data);
+}
+async function fsDailyCopy(data) {
+  const today = fsStamp().slice(0, 10);
+  if (fsLastDaily === today) return;
+  const backups = await fsDir.getDirectoryHandle(FS_BACKUP_DIR, { create:true });
+  const name = `tasktracker-${today}.json`;
+  try {
+    await backups.getFileHandle(name);
+  } catch(e) {
+    if (e.name !== 'NotFoundError') throw e;
+    await fsWriteJson(backups, name, data);
+  }
+  fsLastDaily = today;
+  const daily = [];
+  for await (const entry of backups.keys()) if (FS_DAILY_RE.test(entry)) daily.push(entry);
+  daily.sort();
+  for (const old of daily.slice(0, Math.max(0, daily.length - FS_DAILY_KEEP))) await backups.removeEntry(old);
+}
+
+/* ── 자동 저장 ── */
+function fsScheduleSave() {
+  if (!fsDir) return;
+  clearTimeout(fsTimer);
+  fsTimer = setTimeout(fsSaveNow, FS_DEBOUNCE_MS);
+}
+async function fsSaveNow() {
+  clearTimeout(fsTimer);
+  fsTimer = null;
+  if (!fsDir || fsState === 'paused') return;
+  if (fsSaving) { fsPending = true; return; }
+  const data = fsCollect();
+  if (!fsHasRealTasks(data.tasks)) { fsSetState('waiting'); return; }
+  fsSaving = true;
+  try {
+    await fsWriteJson(fsDir, FS_MAIN_FILE, data);
+    fsLastSaved = new Date();
+    fsSetState('on');
+    await fsDailyCopy(data).catch(e => console.warn('일별 사본 저장 실패', e));
+  } catch(e) {
+    console.error('자동 저장 실패', e);
+    fsSetState(e.name === 'NotAllowedError' ? 'paused' : 'error');
+  } finally {
+    fsSaving = false;
+    if (fsPending) { fsPending = false; fsSaveNow(); }
+  }
+}
+function fsFlush() { if (fsTimer) fsSaveNow(); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) fsFlush(); });
+window.addEventListener('pagehide', fsFlush);
+
+/* ── 시작 ── */
+async function fsInit(hasGesture) {
+  if (!FS_SUPPORTED) { fsSetState('unsupported'); return; }
+  let dir = null;
+  try { dir = await fsRecallDir(); } catch(e) { console.warn('저장 폴더 정보를 읽지 못했습니다', e); }
+  if (!dir) {
+    fsSetState('off');
+    if (!localStorage.getItem('ws_fs_dismissed')) fsShowSetup();
+    return;
+  }
+  fsDir = dir;
+  await fsResume(hasGesture);
+}
+/* 폴더 접근 권한 확인. 권한 요청은 사용자의 클릭 직후에만 가능하다 */
+async function fsResume(hasGesture) {
+  let perm = await fsDir.queryPermission({ mode:'readwrite' });
+  if (perm !== 'granted' && hasGesture) {
+    try { perm = await fsDir.requestPermission({ mode:'readwrite' }); }
+    catch(e) { console.warn('폴더 권한 요청 실패', e); }
+  }
+  if (perm === 'granted') { fsSetState('on'); await fsSaveNow(); }
+  else fsSetState('paused');
+}
+async function fsConnect(dir) {
+  fsDir = dir;
+  fsLastDaily = null;
+  try { await fsRememberDir(dir); } catch(e) { console.warn('저장 폴더 정보를 기억하지 못했습니다', e); }
+  localStorage.removeItem('ws_fs_dismissed');
+  fsCloseModal();
+  fsSetState('on');
+  await fsSaveNow();
+}
+
+/* ── 폴더 지정 ── */
+async function fsPickFolder() {
+  let dir;
+  try {
+    dir = await window.showDirectoryPicker({ id:'tasktracker', mode:'readwrite', startIn:'documents' });
+  } catch(e) {
+    if (e.name !== 'AbortError') console.error('폴더 선택 실패', e);
+    return;
+  }
+  let saved;
+  try { saved = await fsReadMain(dir); }
+  catch(e) { console.error('폴더 읽기 실패', e); fsShowUnreadable(); return; }
+
+  if (saved === undefined) { fsShowUnreadable(); return; }
+  const local = fsCollect();
+  if (saved === null || fsSameTasks(saved.tasks, local.tasks)) { await fsConnect(dir); return; }
+  if (fsHasRealTasks(local.tasks)) fsShowConflict(dir, saved, local);
+  else fsShowFound(dir, saved);
+}
+async function fsRestore(dir, saved) {
+  const local = fsCollect();
+  try {
+    if (fsHasRealTasks(local.tasks)) await fsSafetyCopy(dir, 'before-restore', local);
+  } catch(e) {
+    console.error('복원 전 사본 저장 실패', e);
+    fsShowFailed('복원 전에 현재 데이터를 보관하지 못해서 복원을 멈췄어요. 현재 데이터는 그대로예요.');
+    return;
+  }
+  localStorage.setItem('ws_tasks', JSON.stringify(saved.tasks));
+  if (Array.isArray(saved.projects)) localStorage.setItem('ws_projects', JSON.stringify(saved.projects));
+  localStorage.setItem('ws_memo', saved.memo || '');
+  load();
+  checkRepeatTasks();
+  renderAll();
+  await fsConnect(dir);
+}
+async function fsKeepLocal(dir, saved) {
+  try {
+    await fsSafetyCopy(dir, 'before-overwrite', saved);
+  } catch(e) {
+    console.error('덮어쓰기 전 사본 저장 실패', e);
+    fsShowFailed('기존 파일을 보관하지 못해서 연결을 멈췄어요. 파일은 그대로예요.');
+    return;
+  }
+  await fsConnect(dir);
+}
+async function fsPickBackup() {
+  let handle;
+  try {
+    [handle] = await window.showOpenFilePicker({
+      startIn: fsDir,
+      types: [{ description:'Task Tracker 백업', accept:{ 'application/json':['.json'] } }],
+    });
+  } catch(e) {
+    if (e.name !== 'AbortError') console.error('파일 선택 실패', e);
+    return;
+  }
+  const saved = await fsParseFile(handle);
+  if (!fsIsValid(saved)) { fsShowFailed('Task Tracker 백업 파일이 아니에요. 현재 데이터는 그대로예요.'); return; }
+  fsShowModal('백업에서 복원할까요?',
+    `<p>${fsDescribe('선택한 백업', saved)}</p>
+     <p>${fsDescribe('현재', fsCollect())}</p>
+     <p>복원하기 전에 현재 데이터를 <strong>backups</strong> 폴더에 사본으로 남겨요.</p>`,
+    [{ label:'취소', run:fsCloseModal },
+     { label:'복원', primary:true, run:() => fsRestore(fsDir, saved) }]);
+}
+
+/* ── 화면 ── */
+function fsSetState(state) {
+  fsState = state;
+  const labels = {
+    on: '자동 저장 중', waiting: '자동 저장 대기', off: '자동 저장 꺼짐',
+    paused: '자동 저장 일시정지', error: '자동 저장 실패', unsupported: '자동 저장 미지원',
+  };
+  const chip = document.getElementById('save-chip');
+  chip.dataset.state = state;
+  document.getElementById('save-chip-label').textContent = labels[state];
+  chip.title = fsLastSaved ? `마지막 저장: ${fsFormatTime(fsLastSaved)}` : '';
+}
+function fsEscape(text) {
+  const el = document.createElement('div');
+  el.textContent = text;
+  return el.innerHTML;
+}
+function fsDescribe(label, data) {
+  const when = data.savedAt ? ` · ${fsFormatTime(data.savedAt)}` : '';
+  return `<strong>${label}</strong>: 태스크 ${data.tasks.length}개${when}`;
+}
+function fsShowModal(title, body, actions) {
+  document.getElementById('fs-modal-title').textContent = title;
+  document.getElementById('fs-modal-body').innerHTML = body;
+  const box = document.getElementById('fs-modal-actions');
+  box.innerHTML = '';
+  actions.forEach(action => {
+    const btn = document.createElement('button');
+    btn.className = action.primary ? 'btn btn-primary' : 'btn';
+    btn.textContent = action.label;
+    btn.onclick = action.run;
+    box.appendChild(btn);
+  });
+  document.getElementById('fs-modal-bg').classList.add('open');
+}
+function fsCloseModal() { document.getElementById('fs-modal-bg').classList.remove('open'); }
+function fsDismissSetup() {
+  localStorage.setItem('ws_fs_dismissed', '1');
+  fsCloseModal();
+}
+function fsShowSetup() {
+  fsShowModal('💾 자동 저장 폴더를 지정해 주세요',
+    `<p>지금 데이터는 이 브라우저 안에만 있어서, 브라우저 데이터가 지워지면 함께 사라져요.</p>
+     <p>폴더를 <strong>한 번만</strong> 지정하면 내용이 바뀔 때마다 그 폴더의 파일에 자동으로 저장돼요.</p>
+     <p><strong>OneDrive 안에 새 폴더</strong>(예: TaskTracker)를 만들어 고르는 걸 추천해요. 문서·다운로드·바탕화면 폴더 자체는 고를 수 없으니, 그 안에 새 폴더를 만들어 주세요.</p>`,
+    [{ label:'나중에', run:fsDismissSetup },
+     { label:'폴더 지정', primary:true, run:fsPickFolder }]);
+}
+function fsShowFound(dir, saved) {
+  fsShowModal('저장된 데이터를 찾았어요',
+    `<p>${fsDescribe('이 폴더의 파일', saved)}</p>
+     <p>이 데이터를 불러올까요?</p>`,
+    [{ label:'다른 폴더 선택', run:fsPickFolder },
+     { label:'불러오기', primary:true, run:() => fsRestore(dir, saved) }]);
+}
+function fsShowConflict(dir, saved, local) {
+  fsShowModal('어떤 데이터를 쓸까요?',
+    `<p>이 폴더에 이미 저장된 파일이 있고, 지금 화면의 데이터와 달라요.</p>
+     <p>${fsDescribe('폴더의 파일', saved)}<br>${fsDescribe('현재 화면', local)}</p>
+     <p>어느 쪽을 골라도 사용하지 않는 데이터는 <strong>backups</strong> 폴더에 사본으로 남겨요.</p>`,
+    [{ label:'현재 화면 유지', run:() => fsKeepLocal(dir, saved) },
+     { label:'파일 불러오기', primary:true, run:() => fsRestore(dir, saved) }]);
+}
+function fsShowUnreadable() {
+  fsShowModal('이 폴더의 파일을 읽을 수 없어요',
+    `<p>폴더에 있는 저장 파일이 손상됐거나 이 앱의 파일이 아니에요. 덮어쓰지 않도록 연결하지 않았어요.</p>
+     <p>다른 폴더를 골라 주세요.</p>`,
+    [{ label:'닫기', run:fsCloseModal },
+     { label:'다른 폴더 선택', primary:true, run:fsPickFolder }]);
+}
+function fsShowFailed(message) {
+  fsShowModal('진행하지 못했어요', `<p>${fsEscape(message)}</p>`, [{ label:'닫기', primary:true, run:fsCloseModal }]);
+}
+function fsShowStatus() {
+  const folder = `<p><strong>저장 폴더</strong>: ${fsEscape(fsDir.name)}</p>`;
+  const body = fsState === 'waiting'
+    ? `${folder}<p>지금은 태스크가 없거나 샘플뿐이라, 기존 파일을 지키기 위해 저장하지 않고 있어요. 태스크를 추가하면 다시 저장돼요.</p>`
+    : `${folder}<p><strong>마지막 저장</strong>: ${fsLastSaved ? fsFormatTime(fsLastSaved) : '-'}</p>
+       <p>날짜별 사본은 <strong>backups</strong> 폴더에 최근 ${FS_DAILY_KEEP}일치를 보관해요.</p>`;
+  fsShowModal('💾 자동 저장', body,
+    [{ label:'백업에서 복원', run:fsPickBackup },
+     { label:'폴더 변경', run:fsPickFolder },
+     { label:'닫기', primary:true, run:fsCloseModal }]);
+}
+function fsChipClick() {
+  if (fsState === 'on' || fsState === 'waiting') { fsShowStatus(); return; }
+  if (fsState === 'paused') { fsResume(true); return; }
+  if (fsState === 'unsupported') {
+    fsShowModal('자동 저장을 쓸 수 없는 브라우저예요',
+      '<p>폴더 자동 저장은 Edge와 Chrome에서만 지원돼요. 앱은 지금처럼 그대로 쓸 수 있고, 데이터는 이 브라우저 안에 저장돼요.</p>',
+      [{ label:'닫기', primary:true, run:fsCloseModal }]);
+    return;
+  }
+  if (fsState === 'error') {
+    fsShowModal('자동 저장에 실패했어요',
+      '<p>폴더가 삭제됐거나 옮겨졌을 수 있어요. 데이터는 브라우저에 그대로 있으니, 폴더를 다시 지정해 주세요.</p>',
+      [{ label:'닫기', run:fsCloseModal },
+       { label:'폴더 지정', primary:true, run:fsPickFolder }]);
+    return;
+  }
+  fsShowSetup();
+}
+
+/* ══════════════════════════════════════
    AUTH
 ══════════════════════════════════════ */
 function dayOffset(n) {
@@ -1705,6 +2093,7 @@ function tryUnlock() {
     if (!tasks.length) initSample();
     checkRepeatTasks();
     renderAll();
+    fsInit(true);
   } else {
     const err = document.getElementById('lock-error');
     err.style.display = 'block';
@@ -1721,6 +2110,7 @@ if (sessionStorage.getItem('ws_auth') === '1') {
   if (!tasks.length) initSample();
   checkRepeatTasks();
   renderAll();
+  fsInit(false);
 } else {
   setTimeout(() => document.getElementById('lock-input').focus(), 100);
 }
