@@ -110,6 +110,7 @@
     .board-card:hover { border-color:var(--border-mid); }
     .board-card.selected { border-color:#185FA5; box-shadow:inset 0 0 0 1px #185FA5; }
     .dragging { opacity:0.4; }
+    .board-card.drop-target { border-color:#2E7CD6; background:#EAF2FC; box-shadow:inset 0 0 0 1px #2E7CD6; }
     .board-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; padding-right:32px; }
     .board-card-title { flex:1; min-width:0; font-size:15.5px; font-weight:500; line-height:1.4; color:var(--text-primary); overflow-wrap:anywhere; }
     .board-card-sub { font-size:12px; color:var(--text-tertiary); }
@@ -994,7 +995,7 @@ function sortCards(cards) {
 function projectCards() {
   const cards = projects.map((p, i) => {
     const list = projectTasks(p);
-    return { list, html:boardCardHtml(p, `과업 ${goals.filter(g => g.project === p).length}개`, list, `boardOpenProject(${i})`, cardToolsHtml(`deleteProject(${i})`), boardPath.project === p, dragAttrs('project', p)) };
+    return { list, html:boardCardHtml(p, `과업 ${goals.filter(g => g.project === p).length}개`, list, `boardOpenProject(${i})`, cardToolsHtml(`deleteProject(${i})`), boardPath.project === p, `${dragAttrs('project', p)} data-drop-project="${escHtml(p)}"`) };
   });
   const orphans = projectTasks(NO_PROJECT);
   if (orphans.length) cards.push({ list:orphans, html:boardCardHtml('프로젝트 없음', '', orphans, 'boardOpenProject(-1)', cardToolsHtml('deleteGroup(NO_PROJECT)'), boardPath.project === NO_PROJECT) });
@@ -1005,10 +1006,10 @@ function goalCards(project) {
     const list = groupTasks(project, g.id);
     if (boardForm && boardForm.kind === 'rename' && boardForm.goalId === g.id) return { list, html:boardFormHtml('과업 이름') };
     const tools = cardToolsHtml(`deleteGoal('${g.id}')`, `boardFormOpen('rename','${g.id}')`);
-    return { list, html:boardCardHtml(g.title, '', list, `boardOpenGoal('${g.id}')`, tools, boardPath.goal === g.id, dragAttrs('goal', g.id)) };
+    return { list, html:boardCardHtml(g.title, '', list, `boardOpenGoal('${g.id}')`, tools, boardPath.goal === g.id, `${dragAttrs('goal', g.id)} data-drop-goal="${g.id}"`) };
   });
   const ungrouped = groupTasks(project, UNGROUPED);
-  if (ungrouped.length) cards.push({ list:ungrouped, html:boardCardHtml('미분류', '', ungrouped, `boardOpenGoal('${UNGROUPED}')`, cardToolsHtml('deleteGroup(boardPath.project)'), boardPath.goal === UNGROUPED) });
+  if (ungrouped.length) cards.push({ list:ungrouped, html:boardCardHtml('미분류', '', ungrouped, `boardOpenGoal('${UNGROUPED}')`, cardToolsHtml('deleteGroup(boardPath.project)'), boardPath.goal === UNGROUPED, `data-drop-goal="${UNGROUPED}"`) });
   return sortCards(cards);
 }
 function taskCards(project, goal) {
@@ -1096,8 +1097,39 @@ function boardFormSave() {
   if (addCard) addCard.scrollIntoView({ block:'nearest' });
 }
 
-/* ── 드래그로 순서 변경 — 같은 열 안에서, 완료 여부가 같은 카드끼리만 옮긴다 ── */
-let dragCard = null;
+/* ── 드래그로 순서 변경 — 같은 열 안에서, 완료 여부가 같은 카드끼리만 옮긴다 ──
+   세부업무는 다른 과업 카드에, 과업은 다른 프로젝트 카드에 놓아 옮길 수도 있다 */
+let dragCard = null, dropTarget = null;
+const DROP_TARGETS = { task:'[data-drop-goal]', goal:'[data-drop-project]' };
+function findDropCard(e) {
+  const selector = dragCard && DROP_TARGETS[dragCard.dataset.dragKind];
+  const card = selector && e.target.closest(selector);
+  return card && !card.classList.contains('selected') ? card : null;   /* 지금 속한 곳에 놓으면 그대로 */
+}
+function setDropTarget(card) {
+  if (dropTarget === card) return;
+  if (dropTarget) dropTarget.classList.remove('drop-target');
+  dropTarget = card;
+  if (card) card.classList.add('drop-target');
+}
+function moveTaskToGoal(id, goal) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.goalId = goal === UNGROUPED ? '' : goal;
+  delete t.order;   /* 옮겨 간 과업에서는 직접 정한 순서 뒤에 붙는다 */
+  persist();
+  renderAll();
+}
+/* 과업 안의 세부업무도 함께 옮기고, 옮겨 간 프로젝트의 과업 목록 맨 뒤에 놓는다 */
+function moveGoalToProject(id, project) {
+  const goal = goals.find(g => g.id === id);
+  if (!goal) return;
+  goal.project = project;
+  tasks.forEach(t => { if (t.goalId === id) t.project = project; });
+  goals = [...goals.filter(g => g !== goal), goal];
+  persist();
+  renderAll();
+}
 function dragAttrs(kind, id) {
   return `draggable="true" data-drag-kind="${kind}" data-drag-id="${escHtml(id)}"`;
 }
@@ -1138,12 +1170,24 @@ boardBody.addEventListener('dragstart', e => {
   requestAnimationFrame(() => { if (dragCard) dragCard.classList.add('dragging'); });
 });
 boardBody.addEventListener('dragover', e => {
+  const card = findDropCard(e);
+  setDropTarget(card);
+  if (card) { e.preventDefault(); return; }
   const col = dragColumn(e);
   if (!col) return;
   e.preventDefault();
   moveDragCard(col, e.clientY);
 });
 boardBody.addEventListener('drop', e => {
+  const card = findDropCard(e);
+  if (card) {
+    e.preventDefault();
+    const { dragId, dragKind } = dragCard.dataset;
+    dragCard = dropTarget = null;
+    if (dragKind === 'task') moveTaskToGoal(dragId, card.dataset.dropGoal);
+    if (dragKind === 'goal') moveGoalToProject(dragId, card.dataset.dropProject);
+    return;
+  }
   const col = dragColumn(e);
   if (!col) return;
   e.preventDefault();
@@ -1153,7 +1197,7 @@ boardBody.addEventListener('drop', e => {
 /* 열 밖에 놓거나 Esc로 취소하면 원래 순서로 되돌린다 */
 boardBody.addEventListener('dragend', () => {
   if (!dragCard) return;
-  dragCard = null;
+  dragCard = dropTarget = null;
   renderBoard();
 });
 
