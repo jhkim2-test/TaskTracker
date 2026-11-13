@@ -1098,9 +1098,9 @@ function boardFormSave() {
 }
 
 /* ── 드래그로 순서 변경 — 같은 열 안에서, 완료 여부가 같은 카드끼리만 옮긴다 ──
-   세부업무는 다른 과업 카드에, 과업은 다른 프로젝트 카드에 놓아 옮길 수도 있다 */
+   세부업무는 다른 과업·프로젝트 카드에, 과업은 다른 프로젝트 카드에 놓아 옮길 수도 있다 */
 let dragCard = null, dropTarget = null;
-const DROP_TARGETS = { task:'[data-drop-goal]', goal:'[data-drop-project]' };
+const DROP_TARGETS = { task:'[data-drop-goal],[data-drop-project]', goal:'[data-drop-project]' };
 function findDropCard(e) {
   const selector = dragCard && DROP_TARGETS[dragCard.dataset.dragKind];
   const card = selector && e.target.closest(selector);
@@ -1117,6 +1117,16 @@ function moveTaskToGoal(id, goal) {
   if (!t) return;
   t.goalId = goal === UNGROUPED ? '' : goal;
   delete t.order;   /* 옮겨 간 과업에서는 직접 정한 순서 뒤에 붙는다 */
+  persist();
+  renderAll();
+}
+/* 다른 프로젝트로 옮긴 세부업무는 그 프로젝트의 미분류에 들어간다 */
+function moveTaskToProject(id, project) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.project = project;
+  t.goalId  = '';
+  delete t.order;
   persist();
   renderAll();
 }
@@ -1184,7 +1194,8 @@ boardBody.addEventListener('drop', e => {
     e.preventDefault();
     const { dragId, dragKind } = dragCard.dataset;
     dragCard = dropTarget = null;
-    if (dragKind === 'task') moveTaskToGoal(dragId, card.dataset.dropGoal);
+    if (dragKind === 'task' && card.dataset.dropGoal)    moveTaskToGoal(dragId, card.dataset.dropGoal);
+    if (dragKind === 'task' && card.dataset.dropProject) moveTaskToProject(dragId, card.dataset.dropProject);
     if (dragKind === 'goal') moveGoalToProject(dragId, card.dataset.dropProject);
     return;
   }
