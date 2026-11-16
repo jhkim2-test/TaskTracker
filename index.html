@@ -111,6 +111,39 @@
     .board-card.selected { border-color:#185FA5; box-shadow:inset 0 0 0 1px #185FA5; }
     .dragging { opacity:0.4; }
     .board-card.drop-target { border-color:#2E7CD6; background:#EAF2FC; box-shadow:inset 0 0 0 1px #2E7CD6; }
+    .task-card.is-selected { box-shadow:0 0 0 2px #2E7CD6; }
+    .select-bar { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); z-index:150; display:flex; align-items:center; gap:12px; padding:8px 10px 8px 16px; border-radius:20px; background:var(--text-primary); color:var(--bg-primary); font-size:13px; box-shadow:0 4px 16px rgba(0,0,0,0.18); white-space:nowrap; }
+    .select-bar:empty { display:none; }
+    .select-bar .btn { color:var(--text-primary); }
+    /* 📌 완료 안 된 업무 — 오른쪽 두 열을 합쳐 프로젝트별로 나열 */
+    .todo-card { margin-bottom:6px; }
+    .todo-panel { grid-column:span 2; }
+    @media (max-width:900px) { .todo-panel { grid-column:auto; } }
+    /* 왼쪽 할 일·진행 중 / 오른쪽 대기 — 각각 따로 스크롤 */
+    .todo-split { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:8px; padding:0 8px 8px; }
+    .todo-side { display:flex; flex-direction:column; min-height:0; }
+    .todo-side + .todo-side { border-left:0.5px solid var(--border-mid); padding-left:8px; }
+    .todo-side-head { display:flex; align-items:center; gap:7px; padding:4px 4px 10px; font-size:14px; font-weight:600; color:var(--text-primary); }
+    .todo-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .todo-side .board-col-body { padding:2px 2px 8px; gap:12px; }
+    @media (max-width:900px) {
+      .todo-split { grid-template-columns:minmax(0,1fr); }
+      .todo-side + .todo-side { border-left:none; padding-left:0; border-top:0.5px solid var(--border-mid); padding-top:8px; }
+    }
+    /* 프로젝트 묶음 = 흰 상자 하나, 업무는 그 안의 줄 목록 (카드마다 테두리·배경을 두지 않는다) */
+    .todo-group { flex-shrink:0; display:flex; flex-direction:column; min-width:0; background:var(--bg-primary); border:0.5px solid var(--border-light); border-radius:var(--radius-md); overflow:hidden; }
+    .todo-group-head { display:flex; align-items:center; gap:8px; padding:10px 14px; font-family:inherit; font-size:14.5px; font-weight:600; color:var(--text-primary); background:none; border:none; border-bottom:0.5px solid var(--border-light); cursor:pointer; text-align:left; }
+    .todo-group-head:hover { background:var(--bg-secondary); }
+    .todo-group-head::after { content:'보드에서 열기 ›'; margin-left:auto; font-size:12px; font-weight:400; color:var(--text-tertiary); opacity:0; }
+    .todo-group-head:hover::after { opacity:1; }
+    .todo-group-head span { min-width:20px; padding:1px 7px; border-radius:10px; background:var(--bg-secondary); font-size:12px; font-weight:500; text-align:center; color:var(--text-secondary); }
+    .todo-group .task-card, .todo-group .task-card[class*="urgent-"] { padding:9px 14px; border:none; border-radius:0; background:transparent; }
+    .todo-group .task-card + .task-card { border-top:0.5px solid var(--border-light); }
+    .todo-group .task-card:hover { background:var(--bg-secondary); }
+    .todo-group .task-card.is-selected { box-shadow:inset 3px 0 0 #2E7CD6; background:#EAF2FC; }
+    .todo-group .task-title { font-size:14.5px; }
+    .todo-group .p-mid { visibility:hidden; }   /* 대부분이 '보통'이라 눈에 걸리기만 한다 — 칸은 남겨 줄을 맞춘다 */
+    .task-goal { margin-left:8px; font-size:12px; font-weight:400; color:var(--text-tertiary); }
     .board-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; padding-right:32px; }
     .board-card-title { flex:1; min-width:0; font-size:15.5px; font-weight:500; line-height:1.4; color:var(--text-primary); overflow-wrap:anywhere; }
     .board-card-sub { font-size:12px; color:var(--text-tertiary); }
@@ -546,6 +579,7 @@
   <div id="view-board" class="view active">
     <div class="board-crumbs" id="board-crumbs"></div>
     <div id="board-body"></div>
+    <div class="select-bar" id="select-bar"></div>
   </div>
 
   <!-- ── List view ── -->
@@ -759,7 +793,10 @@ const STATUS_CLASS    = { todo:'s-todo', inprogress:'s-inprogress', wait:'s-wait
 let tasks = [], projects = [], goals = [], editId = null;
 let cStatusVal = 'todo', eStatusVal = 'todo';
 const NO_PROJECT = '__none__', UNGROUPED = '__ungrouped__';
-let boardPath = { project:null, goal:null };
+const TODO_VIEW = '__todo__';
+let boardPath = { project:TODO_VIEW, goal:null };   /* 앱을 열면 완료 안 된 업무부터 보여준다 */
+const selectedTasks = new Set();
+let selectAnchor = null;
 let boardForm = null;   /* 입력 중인 카드 { kind:'project'|'goal'|'task'|'rename', goalId, value, error } */
 const doneToggled = new Set();   /* 기본 펼침 상태와 다르게 바꾼 완료 화면 항목 */
 const NEW_GOAL = '__new__';
@@ -970,16 +1007,19 @@ function boardAddCardHtml(kind, placeholder) {
   if (boardForm && boardForm.kind === kind) return boardFormHtml(placeholder);
   return `<button class="board-add-card" data-kind="${kind}" title="${placeholder}" onclick="boardFormOpen('${kind}')">＋</button>`;
 }
-function taskCardHtml(t, showPath) {
+/* path: '' | 'full'(프로젝트 › 과업) | 'goal'(과업만) */
+function taskCardHtml(t, path, drag) {
   const isDone  = t.status === 'done';
   const urgency = cardUrgencyClass(t.due, isDone);
+  const goalName = path === 'goal' ? goalTitle(t) : '';   /* 📌 화면에서는 과업 이름을 제목 옆에 작게 */
+  const pathLine = path === 'full' ? pathHtml(t) : '';
   return `
-    <div class="task-card${urgency?' '+urgency:''}${isDone?' is-done':''}" onclick="openEditModal('${t.id}')" ${showPath ? '' : dragAttrs('task', t.id)}>
+    <div class="task-card${urgency?' '+urgency:''}${isDone?' is-done':''}" data-task-id="${t.id}" onclick="taskCardClick(event,'${t.id}')" ${drag ? dragAttrs('task', t.id) : ''}>
       ${cardToolsHtml(`deleteTask('${t.id}')`)}
-      ${showPath ? pathHtml(t) : ''}
+      ${pathLine}
       <div class="task-card-top">
         <button class="check-btn" title="${isDone?'완료 취소':'완료 처리'}" onclick="event.stopPropagation();toggleDone('${t.id}')">${isDone?'✓':''}</button>
-        <div class="task-title" title="${escHtml(t.title)}">${escHtml(t.title)}</div>
+        <div class="task-title" title="${escHtml(t.title)}">${escHtml(t.title)}${goalName ? `<span class="task-goal">${escHtml(goalName)}</span>` : ''}</div>
         <div class="task-card-meta">
           <span>${cardDueHtml(t.due, isDone)}</span>
           <span>${priorityHtml(t.priority)}</span>
@@ -1013,21 +1053,65 @@ function goalCards(project) {
   return sortCards(cards);
 }
 function taskCards(project, goal) {
-  return sortBoardTasks(groupTasks(project, goal)).map(t => taskCardHtml(t, false));
+  return sortBoardTasks(groupTasks(project, goal)).map(t => taskCardHtml(t, '', true));
+}
+const TODO_RANK = { inprogress:0, todo:1, wait:2 };
+function activeTasks() { return tasks.filter(t => t.status !== 'done'); }
+function todoCardHtml() {
+  const active = activeTasks();
+  const count  = s => active.filter(t => t.status === s).length;
+  return `
+    <div class="board-card todo-card${boardPath.project === TODO_VIEW ? ' selected' : ''}" onclick="boardOpenTodo()">
+      <div class="board-card-title">📌 완료 안 된 업무 <span class="board-col-count">${active.length}</span></div>
+      <div class="board-meta"><span>진행 중 ${count('inprogress')} · 할 일 ${count('todo')} · 대기 ${count('wait')}</span></div>
+    </div>`;
+}
+/* 프로젝트별로 묶고, 묶음 안에서는 진행 중 → 할 일 순 (같은 상태는 마감·우선순위 순) */
+function todoGroupsHtml(list, empty) {
+  const groups = [
+    ...projects.map((p, i) => ({ name:p, open:`boardOpenProject(${i})`, list:list.filter(t => t.project === p) })),
+    { name:'프로젝트 없음', open:'boardOpenProject(-1)', list:list.filter(t => !projects.includes(t.project)) }
+  ].filter(g => g.list.length).map(g => `
+    <div class="todo-group">
+      <button class="todo-group-head" title="보드에서 열기" onclick="${g.open}">${escHtml(g.name)}<span>${g.list.length}</span></button>
+      ${sortTasks(g.list).sort((a,b) => (TODO_RANK[a.status] ?? 3) - (TODO_RANK[b.status] ?? 3)).map(t => taskCardHtml(t, 'goal', true)).join('')}
+    </div>`).join('');
+  return groups || `<div class="empty-col">${empty}</div>`;
+}
+function todoPanelHtml() {
+  const active  = activeTasks();
+  const waiting = active.filter(t => t.status === 'wait');
+  const working = active.filter(t => t.status !== 'wait');
+  return `
+    <section class="board-col todo-panel">
+      <div class="board-col-head">완료 안 된 업무<span class="board-col-count">${active.length}</span></div>
+      <div class="todo-split">
+        <div class="todo-side">
+          <div class="todo-side-head"><span class="todo-dot" style="background:#185FA5;"></span>할 일 · 진행 중<span class="board-col-count">${working.length}</span></div>
+          <div class="board-col-body" data-scope="todo-working">${todoGroupsHtml(working, '할 일이나 진행 중인 업무가 없습니다')}</div>
+        </div>
+        <div class="todo-side">
+          <div class="todo-side-head"><span class="todo-dot" style="background:#BA7517;"></span>대기<span class="board-col-count">${waiting.length}</span></div>
+          <div class="board-col-body" data-scope="todo-waiting">${todoGroupsHtml(waiting, '대기 중인 업무가 없습니다')}</div>
+        </div>
+      </div>
+    </section>`;
 }
 /* cards가 null이면 왼쪽 열에서 아직 선택하지 않은 상태 */
-function boardColumnHtml(label, scope, cards, hint, addCard) {
+function boardColumnHtml(label, scope, cards, hint, addCard, lead = '') {
   const body = cards && cards.length ? cards.join('') : addCard ? '' : `<div class="empty-col">${hint}</div>`;
   return `
     <section class="board-col">
       <div class="board-col-head">${label}${cards ? `<span class="board-col-count">${cards.length}</span>` : ''}</div>
-      <div class="board-col-body" data-scope="${escHtml(scope)}">${body}${addCard}</div>
+      <div class="board-col-body" data-scope="${escHtml(scope)}">${lead}${body}${addCard}</div>
     </section>`;
 }
 function boardColumnsHtml() {
   const { project, goal } = boardPath;
+  const projectCol = boardColumnHtml('프로젝트', 'projects', projectCards(), '', boardAddCardHtml('project', '새 프로젝트 이름'), todoCardHtml());
+  if (project === TODO_VIEW) return `<div class="board-columns">${projectCol}${todoPanelHtml()}</div>`;
   return '<div class="board-columns">'
-    + boardColumnHtml('프로젝트', 'projects', projectCards(), '', boardAddCardHtml('project', '새 프로젝트 이름'))
+    + projectCol
     + boardColumnHtml('과업', `goals:${project}`, project ? goalCards(project) : null, '왼쪽에서 프로젝트를 선택하세요',
         project && project !== NO_PROJECT ? boardAddCardHtml('goal', '새 과업 이름') : '')
     + boardColumnHtml('세부업무', `tasks:${project}:${goal}`, goal ? taskCards(project, goal) : null, '왼쪽에서 과업을 선택하세요',
@@ -1037,6 +1121,7 @@ function boardColumnsHtml() {
 /* 삭제 등으로 사라진 위치에 머물러 있지 않게 한다 */
 function normalizeBoardPath() {
   const { project, goal } = boardPath;
+  if (project === TODO_VIEW) return;
   if (project === NO_PROJECT ? !projectTasks(NO_PROJECT).length : project && !projects.includes(project)) { boardPath = { project:null, goal:null }; return; }
   if (goal === UNGROUPED ? !groupTasks(project, UNGROUPED).length : goal && !goals.some(g => g.id === goal && g.project === project)) boardPath.goal = null;
 }
@@ -1045,13 +1130,58 @@ function boardOpenProject(i) {
   if (project === boardPath.project) return;
   boardPath = { project, goal:i < 0 ? UNGROUPED : null };
   boardForm = null;
+  selectedTasks.clear();
   renderBoard();
 }
 function boardOpenGoal(goal) {
   boardPath.goal = goal;
   boardForm = null;
+  selectedTasks.clear();
   renderBoard();
 }
+function boardOpenTodo() {
+  if (boardPath.project === TODO_VIEW) return;
+  boardPath = { project:TODO_VIEW, goal:null };
+  boardForm = null;
+  selectedTasks.clear();
+  renderBoard();
+}
+
+/* ── 여러 개 선택 — Ctrl+클릭은 하나씩, Shift+클릭은 범위. 고른 카드 중 하나를 끌면 함께 옮겨진다 ── */
+function taskCardClick(e, id) {
+  if (FILTER_IDS.some(f => document.getElementById(f).value)) { openEditModal(id); return; }
+  if (e.ctrlKey || e.metaKey) {
+    if (selectedTasks.has(id)) selectedTasks.delete(id);
+    else selectedTasks.add(id);
+    selectAnchor = id;
+  } else if (e.shiftKey) {
+    const ids  = [...document.querySelectorAll('#board-body .task-card[data-task-id]')].map(c => c.dataset.taskId);
+    const from = ids.indexOf(selectAnchor), to = ids.indexOf(id);
+    if (from < 0) { selectedTasks.add(id); selectAnchor = id; }
+    else ids.slice(Math.min(from, to), Math.max(from, to) + 1).forEach(x => selectedTasks.add(x));
+    window.getSelection().removeAllRanges();
+  } else {
+    clearSelection();
+    openEditModal(id);
+    return;
+  }
+  updateSelection();
+}
+function clearSelection() {
+  selectedTasks.clear();
+  selectAnchor = null;
+  updateSelection();
+}
+function updateSelection() {
+  [...selectedTasks].forEach(id => { if (!tasks.some(t => t.id === id)) selectedTasks.delete(id); });
+  document.querySelectorAll('#board-body .task-card[data-task-id]').forEach(c => c.classList.toggle('is-selected', selectedTasks.has(c.dataset.taskId)));
+  document.getElementById('select-bar').innerHTML = selectedTasks.size
+    ? `<b>${selectedTasks.size}개 선택됨</b><span>프로젝트나 과업 카드로 끌어다 놓으면 함께 옮겨집니다</span><button class="btn btn-sm" onclick="clearSelection()">선택 해제</button>`
+    : '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && selectedTasks.size && !document.querySelector('.modal-bg.open')) clearSelection();
+});
 function boardFormFocus() {
   const input = document.getElementById('board-form-input');
   input.focus();
@@ -1099,7 +1229,7 @@ function boardFormSave() {
 
 /* ── 드래그로 순서 변경 — 같은 열 안에서, 완료 여부가 같은 카드끼리만 옮긴다 ──
    세부업무는 다른 과업·프로젝트 카드에, 과업은 다른 프로젝트 카드에 놓아 옮길 수도 있다 */
-let dragCard = null, dropTarget = null;
+let dragCard = null, dropTarget = null, dragIds = [];
 const DROP_TARGETS = { task:'[data-drop-goal],[data-drop-project]', goal:'[data-drop-project]' };
 function findDropCard(e) {
   const selector = dragCard && DROP_TARGETS[dragCard.dataset.dragKind];
@@ -1112,21 +1242,27 @@ function setDropTarget(card) {
   dropTarget = card;
   if (card) card.classList.add('drop-target');
 }
-function moveTaskToGoal(id, goal) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  t.goalId = goal === UNGROUPED ? '' : goal;
-  delete t.order;   /* 옮겨 간 과업에서는 직접 정한 순서 뒤에 붙는다 */
+function moveTasksToGoal(ids, goal) {
+  ids.forEach(id => {
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+    t.goalId = goal === UNGROUPED ? '' : goal;
+    delete t.order;   /* 옮겨 간 과업에서는 직접 정한 순서 뒤에 붙는다 */
+  });
+  selectedTasks.clear();
   persist();
   renderAll();
 }
-/* 다른 프로젝트로 옮긴 세부업무는 그 프로젝트의 미분류에 들어간다 */
-function moveTaskToProject(id, project) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  t.project = project;
-  t.goalId  = '';
-  delete t.order;
+/* 다른 프로젝트로 옮긴 세부업무는 그 프로젝트의 미분류에 들어간다 (이미 그 프로젝트인 업무는 그대로) */
+function moveTasksToProject(ids, project) {
+  ids.forEach(id => {
+    const t = tasks.find(x => x.id === id);
+    if (!t || t.project === project) return;
+    t.project = project;
+    t.goalId  = '';
+    delete t.order;
+  });
+  selectedTasks.clear();
   persist();
   renderAll();
 }
@@ -1175,16 +1311,22 @@ const boardBody = document.getElementById('board-body');
 boardBody.addEventListener('dragstart', e => {
   dragCard = e.target.closest ? e.target.closest('[data-drag-id]') : null;
   if (!dragCard) return;
+  const { dragId, dragKind } = dragCard.dataset;
+  dragIds = dragKind === 'task' && selectedTasks.has(dragId) ? [...selectedTasks] : [dragId];
   e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', dragCard.dataset.dragId);
-  requestAnimationFrame(() => { if (dragCard) dragCard.classList.add('dragging'); });
+  e.dataTransfer.setData('text/plain', dragId);
+  requestAnimationFrame(() => {
+    if (!dragCard) return;
+    dragCard.classList.add('dragging');
+    if (dragKind === 'task') document.querySelectorAll('#board-body .task-card[data-task-id]').forEach(c => { if (dragIds.includes(c.dataset.taskId)) c.classList.add('dragging'); });
+  });
 });
 boardBody.addEventListener('dragover', e => {
   const card = findDropCard(e);
   setDropTarget(card);
   if (card) { e.preventDefault(); return; }
   const col = dragColumn(e);
-  if (!col) return;
+  if (!col || dragIds.length > 1) return;   /* 여러 개를 끌 때는 순서 변경 없이 옮기기만 */
   e.preventDefault();
   moveDragCard(col, e.clientY);
 });
@@ -1194,13 +1336,13 @@ boardBody.addEventListener('drop', e => {
     e.preventDefault();
     const { dragId, dragKind } = dragCard.dataset;
     dragCard = dropTarget = null;
-    if (dragKind === 'task' && card.dataset.dropGoal)    moveTaskToGoal(dragId, card.dataset.dropGoal);
-    if (dragKind === 'task' && card.dataset.dropProject) moveTaskToProject(dragId, card.dataset.dropProject);
+    if (dragKind === 'task' && card.dataset.dropGoal)    moveTasksToGoal(dragIds, card.dataset.dropGoal);
+    if (dragKind === 'task' && card.dataset.dropProject) moveTasksToProject(dragIds, card.dataset.dropProject);
     if (dragKind === 'goal') moveGoalToProject(dragId, card.dataset.dropProject);
     return;
   }
   const col = dragColumn(e);
-  if (!col) return;
+  if (!col || dragIds.length > 1) return;
   e.preventDefault();
   saveDragOrder(col);
   dragCard = null;
@@ -1224,7 +1366,8 @@ function renderBoard() {
   if (FILTER_IDS.some(id => document.getElementById(id).value)) {
     const found = sortBoardTasks(getFiltered());
     crumbs.innerHTML = `<span class="crumb-current">검색 결과 ${found.length}건</span><button class="crumb" onclick="clearFilters()">필터 초기화</button>`;
-    body.innerHTML = `<div class="board-grid">${found.length ? found.map(t => taskCardHtml(t, true)).join('') : '<div class="empty-col">조건에 맞는 세부업무가 없습니다</div>'}</div>`;
+    body.innerHTML = `<div class="board-grid">${found.length ? found.map(t => taskCardHtml(t, 'full', false)).join('') : '<div class="empty-col">조건에 맞는 세부업무가 없습니다</div>'}</div>`;
+    clearSelection();
     return;
   }
   normalizeBoardPath();
@@ -1233,6 +1376,7 @@ function renderBoard() {
   crumbs.innerHTML = '';
   body.innerHTML = boardColumnsHtml();
   body.querySelectorAll('.board-col-body').forEach(el => { el.scrollTop = scrolled.get(el.dataset.scope) || 0; });
+  updateSelection();
 }
 
 function renderList() {
